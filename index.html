@@ -276,6 +276,77 @@ body::before {
   .add-btn { width: 100%; justify-content: center; }
   .cost-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ====== TABS ====== */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+.tab-btn { flex: 1; padding: 9px 16px; border: none; border-radius: 7px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--muted); }
+.tab-btn.active { background: var(--accent); color: white; }
+.tab-btn:not(.active):hover { background: var(--surface2); color: var(--text); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ====== SCAN PANEL ====== */
+.scan-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: 0 2px 12px var(--shadow); }
+.scan-panel-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.scan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.scan-field { display: flex; flex-direction: column; gap: 5px; }
+.scan-field.full { grid-column: 1 / -1; }
+.scan-field label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.scan-input { background: var(--input-bg); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; width: 100%; }
+.scan-input:focus { border-color: var(--accent); }
+.scan-input::placeholder { color: var(--muted); }
+.scan-input.tag-input { font-family: 'Space Mono', monospace; font-size: 12px; }
+.scan-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.scan-btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 10px 22px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity 0.2s; display: flex; align-items: center; gap: 8px; }
+.scan-btn:hover { opacity: 0.85; }
+.scan-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.scan-btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.scan-btn.secondary:hover { border-color: var(--accent); opacity: 1; }
+.scan-progress { flex: 1; min-width: 200px; }
+.progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.progress-bar-scan { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; width: 0%; }
+.scan-status-text { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+/* ====== FILTER CHIPS ====== */
+.filter-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.filter-chip { display: flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.filter-chip.active { background: rgba(255,107,53,0.12); border-color: rgba(255,107,53,0.4); color: var(--accent); }
+.filter-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ====== RESULT CARDS ====== */
+.result-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.result-count { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); }
+.result-count span { color: var(--accent2); font-weight: 700; }
+.scan-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.scan-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s, transform 0.1s; box-shadow: 0 2px 8px var(--shadow); position: relative; }
+.scan-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.scan-card.potential { border-color: rgba(0,184,148,0.5); }
+.scan-card.potential::after { content: '⭐ Tiềm năng'; position: absolute; top: 10px; right: 10px; background: var(--green); color: white; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+.scan-card-img { width: 100%; height: 160px; object-fit: cover; background: var(--surface2); display: block; }
+.scan-card-img-placeholder { width: 100%; height: 100px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.scan-card-body { padding: 14px; }
+.scan-card-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.scan-card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.scan-chip { font-family: 'Space Mono', monospace; font-size: 10px; padding: 3px 7px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); white-space: nowrap; }
+.scan-chip.price { color: var(--accent2); border-color: rgba(224,168,0,0.3); background: rgba(224,168,0,0.07); font-size: 12px; font-weight: 700; }
+.scan-chip.bids { color: var(--blue); border-color: rgba(68,136,255,0.25); background: rgba(68,136,255,0.06); }
+.scan-chip.time { color: var(--green); border-color: rgba(0,184,148,0.25); background: rgba(0,184,148,0.06); }
+.scan-chip.time.urgent { color: var(--red); border-color: rgba(232,67,147,0.3); background: rgba(232,67,147,0.07); }
+.scan-chip.buyout { color: var(--purple); border-color: rgba(168,85,247,0.25); background: rgba(168,85,247,0.06); }
+.scan-card-actions { display: flex; gap: 8px; padding: 0 14px 14px; }
+.sc-btn { flex: 1; padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.sc-btn:hover { border-color: var(--accent); color: var(--accent); }
+.sc-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+.sc-btn.primary:hover { opacity: 0.85; }
+
+/* Empty scan */
+.scan-empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.scan-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+
+@media (max-width: 600px) {
+  .scan-grid { grid-template-columns: 1fr; }
+  .scan-cards { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -306,7 +377,7 @@ body::before {
     </div>
   </div>
 
-  <div class="add-form">
+
     <div class="input-wrap">
       <label>Link đấu giá Yahoo Auctions Japan</label>
       <input type="text" class="url-input" id="urlInput"
@@ -339,6 +410,123 @@ body::before {
     <h3>Chưa theo dõi đấu giá nào</h3>
     <p>Paste link từ <strong>auctions.yahoo.co.jp</strong> vào ô trên<br>để bắt đầu theo dõi giá, thời gian và tính chi phí.</p>
   </div>
+
+  </div><!-- end paneTrack -->
+
+  <!-- TAB: QUÉT TỰ ĐỘNG -->
+  <div class="tab-pane" id="paneScan">
+
+    <!-- Bộ lọc quét -->
+    <div class="scan-panel">
+      <div class="scan-panel-title">🔍 Quét theo từ khóa hoặc URL danh sách</div>
+      <div class="scan-grid">
+        <div class="scan-field full">
+          <label>Từ khóa tìm kiếm</label>
+          <input type="text" class="scan-input" id="scanKeyword" placeholder="kindle paperwhite, máy đọc sách...">
+        </div>
+        <div class="scan-field full">
+          <label>Hoặc URL trang danh sách Yahoo Auctions</label>
+          <input type="text" class="scan-input" id="scanUrl" placeholder="https://auctions.yahoo.co.jp/search/search?p=kindle&...">
+        </div>
+      </div>
+
+      <div class="scan-panel-title" style="margin-top:4px">⚙️ Bộ lọc sản phẩm</div>
+      <div class="scan-grid">
+        <div class="scan-field">
+          <label>Giá tối đa (¥)</label>
+          <input type="number" class="scan-input" id="fMaxPrice" placeholder="5000" min="0">
+        </div>
+        <div class="scan-field">
+          <label>Giá tối thiểu (¥)</label>
+          <input type="number" class="scan-input" id="fMinPrice" placeholder="0" min="0">
+        </div>
+        <div class="scan-field">
+          <label>Số lượt đặt tối đa</label>
+          <input type="number" class="scan-input" id="fMaxBids" placeholder="Không giới hạn" min="0">
+        </div>
+        <div class="scan-field">
+          <label>Thời gian còn lại tối thiểu (giờ)</label>
+          <input type="number" class="scan-input" id="fMinHours" placeholder="1" min="0" step="0.5">
+        </div>
+        <div class="scan-field">
+          <label>Từ khóa loại trừ</label>
+          <input type="text" class="scan-input tag-input" id="fExclude" placeholder="junk, ジャンク, broken...">
+        </div>
+        <div class="scan-field">
+          <label>Từ khóa bắt buộc có</label>
+          <input type="text" class="scan-input tag-input" id="fRequire" placeholder="美品, 新品, 保証...">
+        </div>
+        <div class="scan-field">
+          <label>Tình trạng hàng</label>
+          <select class="scan-input" id="fCondition">
+            <option value="">Tất cả</option>
+            <option value="new">Mới / 新品</option>
+            <option value="used">Đã dùng / 中古</option>
+          </select>
+        </div>
+        <div class="scan-field">
+          <label>Có giá Mua ngay</label>
+          <select class="scan-input" id="fHasBuyout">
+            <option value="">Không quan trọng</option>
+            <option value="yes">Có giá Mua ngay</option>
+            <option value="no">Không có</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tiêu chí đánh dấu Tiềm năng -->
+      <div class="scan-panel-title" style="margin-top:4px">⭐ Tiêu chí đánh dấu "Tiềm năng"</div>
+      <div class="scan-grid">
+        <div class="scan-field">
+          <label>Giá ≤ (¥)</label>
+          <input type="number" class="scan-input" id="pMaxPrice" placeholder="3000">
+        </div>
+        <div class="scan-field">
+          <label>Số lượt đặt ≤</label>
+          <input type="number" class="scan-input" id="pMaxBids" placeholder="3">
+        </div>
+        <div class="scan-field">
+          <label>Còn ít nhất (giờ)</label>
+          <input type="number" class="scan-input" id="pMinHours" placeholder="2" step="0.5">
+        </div>
+        <div class="scan-field">
+          <label>Từ khóa tiềm năng</label>
+          <input type="text" class="scan-input tag-input" id="pKeywords" placeholder="美品, 動作確認済み...">
+        </div>
+      </div>
+
+      <div class="scan-actions">
+        <button class="scan-btn" id="scanStartBtn" onclick="startScan()">🔍 Bắt đầu quét</button>
+        <button class="scan-btn secondary" onclick="clearScanResults()">🗑 Xóa kết quả</button>
+        <div class="scan-progress" id="scanProgressWrap" style="display:none">
+          <div class="scan-status-text" id="scanStatusText">Đang quét...</div>
+          <div class="progress-track"><div class="progress-bar-scan" id="scanProgressBar"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kết quả -->
+    <div class="result-toolbar" id="resultToolbar" style="display:none">
+      <div class="result-count">Tìm thấy <span id="resultCount">0</span> sản phẩm
+        <span id="potentialCount" style="margin-left:8px;color:var(--green)"></span>
+      </div>
+      <select class="sort-select" onchange="sortScanResults(this.value)">
+        <option value="potential">⭐ Tiềm năng trước</option>
+        <option value="price_asc">Giá thấp nhất</option>
+        <option value="price_desc">Giá cao nhất</option>
+        <option value="bids_asc">Ít lượt đặt nhất</option>
+        <option value="time_asc">Hết giờ sớm nhất</option>
+      </select>
+    </div>
+
+    <div class="scan-cards" id="scanCards"></div>
+
+    <div class="scan-empty" id="scanEmpty">
+      <div class="scan-empty-icon">🔍</div>
+      <p>Nhập từ khóa hoặc URL rồi nhấn <strong>Bắt đầu quét</strong></p>
+    </div>
+
+  </div><!-- end paneScan -->
 
 </div>
 
@@ -1146,6 +1334,335 @@ document.getElementById('gistModal').addEventListener('click', e => {
 
 document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') addAuction(); });
 renderAll();
+
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  document.getElementById('pane' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+}
+
+// ============================================================
+// SCAN ENGINE
+// ============================================================
+let scanResults = [];
+let scanAbort = false;
+
+const SCAN_PROXIES = [
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+];
+
+async function fetchPage(url) {
+  for (const makeProxy of SCAN_PROXIES) {
+    try {
+      const res = await fetch(makeProxy(url), { signal: AbortSignal.timeout(12000) });
+      if (res.ok) {
+        const text = await res.text();
+        if (text.length > 200) return text;
+      }
+    } catch {}
+  }
+  return null;
+}
+
+function buildSearchUrl(keyword, page = 1) {
+  const base = 'https://auctions.yahoo.co.jp/search/search';
+  const params = new URLSearchParams({
+    p: keyword,
+    va: keyword,
+    b: ((page - 1) * 20) + 1,
+    n: 20,
+    s1: 'new',
+    o1: 'd',
+  });
+  return `${base}?${params.toString()}`;
+}
+
+function parseScanResults(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const items = [];
+
+  // Yahoo Auctions search result items
+  const selectors = [
+    'li[class*="Product"]',
+    '[class*="SearchResult"] li',
+    '.Product',
+    'li.Product',
+  ];
+
+  let nodes = [];
+  for (const sel of selectors) {
+    nodes = Array.from(doc.querySelectorAll(sel));
+    if (nodes.length > 0) break;
+  }
+
+  // Fallback: parse JSON in page
+  if (nodes.length === 0) {
+    const jsonMatch = html.match(/"items"\s*:\s*(\[[\s\S]*?\])\s*[,}]/);
+    if (jsonMatch) {
+      try {
+        const arr = JSON.parse(jsonMatch[1]);
+        return arr.slice(0, 20).map(item => ({
+          id: item.auctionID || item.id || '',
+          title: item.title || item.name || '(Không có tiêu đề)',
+          price: item.currentPrice || item.price || null,
+          buyout: item.buyoutPrice || null,
+          bids: item.bids || item.bidCount || 0,
+          endTime: item.endTime ? new Date(item.endTime).getTime() : null,
+          image: item.thumbnail || item.image || null,
+          url: item.url || (item.auctionID ? `https://page.auctions.yahoo.co.jp/jp/auction/${item.auctionID}` : null),
+        })).filter(i => i.id || i.url);
+      } catch {}
+    }
+  }
+
+  nodes.forEach(node => {
+    try {
+      // Title
+      const titleEl = node.querySelector('[class*="Title"] a, h3 a, .Product__title a, a[class*="title"]');
+      const title = titleEl ? titleEl.textContent.trim() : '';
+      if (!title) return;
+
+      // URL
+      const href = titleEl ? titleEl.getAttribute('href') : '';
+      const url = href ? (href.startsWith('http') ? href : 'https://auctions.yahoo.co.jp' + href) : '';
+      const idMatch = url.match(/auction\/([a-zA-Z0-9]+)/);
+      const id = idMatch ? idMatch[1] : '';
+
+      // Price
+      let price = null;
+      const priceEl = node.querySelector('[class*="Price"] .u-textMedium, [class*="price"] strong, [class*="Price__value"]');
+      if (priceEl) price = parseInt(priceEl.textContent.replace(/[^0-9]/g, '')) || null;
+
+      // Buyout
+      let buyout = null;
+      const buyoutText = node.textContent.match(/即決[^\d]*([\d,]+)/);
+      if (buyoutText) buyout = parseInt(buyoutText[1].replace(/,/g, '')) || null;
+
+      // Bids
+      let bids = 0;
+      const bidsEl = node.querySelector('[class*="bids"], [class*="Bids"]');
+      if (bidsEl) bids = parseInt(bidsEl.textContent.replace(/[^0-9]/g, '')) || 0;
+
+      // End time
+      let endTime = null;
+      const timeEl = node.querySelector('time[datetime]');
+      if (timeEl) endTime = new Date(timeEl.getAttribute('datetime')).getTime();
+
+      // Image
+      let image = null;
+      const imgEl = node.querySelector('img[src], img[data-src]');
+      if (imgEl) image = imgEl.getAttribute('src') || imgEl.getAttribute('data-src');
+
+      items.push({ id, title, price, buyout, bids, endTime, image, url });
+    } catch {}
+  });
+
+  return items;
+}
+
+function checkPotential(item) {
+  const maxP = parseFloat(document.getElementById('pMaxPrice').value) || Infinity;
+  const maxB = parseFloat(document.getElementById('pMaxBids').value) || Infinity;
+  const minH = parseFloat(document.getElementById('pMinHours').value) || 0;
+  const kwds = document.getElementById('pKeywords').value.split(/[,，\s]+/).filter(Boolean);
+
+  const price = item.price || Infinity;
+  const bids = item.bids || 0;
+  const diffH = item.endTime ? (item.endTime - Date.now()) / 3600000 : 99;
+
+  if (price > maxP) return false;
+  if (bids > maxB) return false;
+  if (diffH < minH) return false;
+  if (kwds.length > 0 && !kwds.some(k => item.title.toLowerCase().includes(k.toLowerCase()))) return false;
+
+  return true;
+}
+
+function applyFilters(items) {
+  const maxPrice = parseFloat(document.getElementById('fMaxPrice').value) || Infinity;
+  const minPrice = parseFloat(document.getElementById('fMinPrice').value) || 0;
+  const maxBids = parseFloat(document.getElementById('fMaxBids').value) || Infinity;
+  const minHours = parseFloat(document.getElementById('fMinHours').value) || 0;
+  const exclude = document.getElementById('fExclude').value.split(/[,，\s]+/).filter(Boolean);
+  const require = document.getElementById('fRequire').value.split(/[,，\s]+/).filter(Boolean);
+  const condition = document.getElementById('fCondition').value;
+  const hasBuyout = document.getElementById('fHasBuyout').value;
+
+  return items.filter(item => {
+    const price = item.price || 0;
+    const bids = item.bids || 0;
+    const diffH = item.endTime ? (item.endTime - Date.now()) / 3600000 : 99;
+    const title = item.title.toLowerCase();
+
+    if (price > maxPrice || price < minPrice) return false;
+    if (bids > maxBids) return false;
+    if (diffH < minHours) return false;
+    if (exclude.some(k => title.includes(k.toLowerCase()))) return false;
+    if (require.length > 0 && !require.some(k => title.includes(k.toLowerCase()))) return false;
+    if (condition === 'new' && !/(新品|新しい|未使用|未開封)/.test(item.title)) return false;
+    if (condition === 'used' && !/(中古|使用|二手)/.test(item.title)) return false;
+    if (hasBuyout === 'yes' && !item.buyout) return false;
+    if (hasBuyout === 'no' && item.buyout) return false;
+
+    return true;
+  });
+}
+
+function sortScanResults(by) {
+  if (by === 'price_asc') scanResults.sort((a, b) => (a.price || 99999) - (b.price || 99999));
+  else if (by === 'price_desc') scanResults.sort((a, b) => (b.price || 0) - (a.price || 0));
+  else if (by === 'bids_asc') scanResults.sort((a, b) => (a.bids || 0) - (b.bids || 0));
+  else if (by === 'time_asc') scanResults.sort((a, b) => (a.endTime || Infinity) - (b.endTime || Infinity));
+  else scanResults.sort((a, b) => (b.potential ? 1 : 0) - (a.potential ? 1 : 0));
+  renderScanCards();
+}
+
+async function startScan() {
+  const keyword = document.getElementById('scanKeyword').value.trim();
+  const listUrl = document.getElementById('scanUrl').value.trim();
+
+  if (!keyword && !listUrl) {
+    showToast('Vui lòng nhập từ khóa hoặc URL', 'error');
+    return;
+  }
+
+  scanAbort = false;
+  scanResults = [];
+  document.getElementById('scanStartBtn').disabled = true;
+  document.getElementById('scanStartBtn').textContent = '⏳ Đang quét...';
+  document.getElementById('scanProgressWrap').style.display = 'flex';
+  document.getElementById('scanCards').innerHTML = '';
+  document.getElementById('scanEmpty').style.display = 'none';
+  document.getElementById('resultToolbar').style.display = 'none';
+
+  const urls = [];
+  if (listUrl) {
+    urls.push(listUrl);
+  } else {
+    for (let p = 1; p <= 3; p++) urls.push(buildSearchUrl(keyword, p));
+  }
+
+  let done = 0;
+  for (const url of urls) {
+    if (scanAbort) break;
+    document.getElementById('scanStatusText').textContent = `Đang tải trang ${done + 1}/${urls.length}...`;
+    document.getElementById('scanProgressBar').style.width = `${(done / urls.length) * 100}%`;
+
+    const html = await fetchPage(url);
+    if (html) {
+      const raw = parseScanResults(html);
+      const filtered = applyFilters(raw);
+      filtered.forEach(item => {
+        item.potential = checkPotential(item);
+        scanResults.push(item);
+      });
+      document.getElementById('scanStatusText').textContent = `Tìm thấy ${scanResults.length} sản phẩm...`;
+      renderScanCards();
+    }
+    done++;
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  document.getElementById('scanProgressBar').style.width = '100%';
+  document.getElementById('scanStartBtn').disabled = false;
+  document.getElementById('scanStartBtn').textContent = '🔍 Bắt đầu quét';
+
+  if (scanResults.length === 0) {
+    document.getElementById('scanStatusText').textContent = 'Không tìm thấy sản phẩm nào phù hợp';
+    document.getElementById('scanEmpty').style.display = 'block';
+    showToast('Không tìm thấy sản phẩm nào — thử điều chỉnh bộ lọc', 'error');
+  } else {
+    document.getElementById('scanStatusText').textContent = `✅ Hoàn thành — ${scanResults.length} sản phẩm`;
+    const potCount = scanResults.filter(r => r.potential).length;
+    showToast(`✅ Tìm được ${scanResults.length} sản phẩm, ${potCount} tiềm năng`, 'success');
+  }
+}
+
+function clearScanResults() {
+  scanResults = [];
+  scanAbort = true;
+  document.getElementById('scanCards').innerHTML = '';
+  document.getElementById('scanEmpty').style.display = 'block';
+  document.getElementById('resultToolbar').style.display = 'none';
+  document.getElementById('scanProgressWrap').style.display = 'none';
+}
+
+function fmtCountdown(endTime) {
+  if (!endTime) return { text: '—', cls: 'notime' };
+  const diff = endTime - Date.now();
+  if (diff <= 0) return { text: 'Hết giờ', cls: 'ended' };
+  const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000);
+  if (diff < 3600000) return { text: `${m}ph`, cls: 'urgent' };
+  if (diff < 86400000) return { text: `${h}h ${m}ph`, cls: diff < 6 * 3600000 ? 'warning' : '' };
+  return { text: `${Math.floor(diff / 86400000)}ngày`, cls: '' };
+}
+
+function renderScanCards() {
+  const container = document.getElementById('scanCards');
+  const toolbar = document.getElementById('resultToolbar');
+  const empty = document.getElementById('scanEmpty');
+
+  if (scanResults.length === 0) {
+    empty.style.display = 'block';
+    toolbar.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  toolbar.style.display = 'flex';
+  document.getElementById('resultCount').textContent = scanResults.length;
+  const potCount = scanResults.filter(r => r.potential).length;
+  document.getElementById('potentialCount').textContent = potCount > 0 ? `— ⭐ ${potCount} tiềm năng` : '';
+
+  container.innerHTML = scanResults.map((item, i) => {
+    const cd = fmtCountdown(item.endTime);
+    const imgHtml = item.image
+      ? `<img class="scan-card-img" src="${item.image}" alt="" onerror="this.style.display='none'">`
+      : `<div class="scan-card-img-placeholder">📦</div>`;
+
+    return `<div class="scan-card${item.potential ? ' potential' : ''}">
+      <a href="${item.url || '#'}" target="_blank">${imgHtml}</a>
+      <div class="scan-card-body">
+        <div class="scan-card-title">${item.title}</div>
+        <div class="scan-card-meta">
+          ${item.price ? `<span class="scan-chip price">¥${item.price.toLocaleString()}</span>` : ''}
+          ${item.bids !== null ? `<span class="scan-chip bids">🏁 ${item.bids} lượt</span>` : ''}
+          ${item.buyout ? `<span class="scan-chip buyout">即決 ¥${item.buyout.toLocaleString()}</span>` : ''}
+          ${cd.text !== '—' ? `<span class="scan-chip time ${cd.cls}">⏱ ${cd.text}</span>` : ''}
+        </div>
+      </div>
+      <div class="scan-card-actions">
+        <a href="${item.url || '#'}" target="_blank" class="sc-btn">🔗 Xem</a>
+        <button class="sc-btn primary" onclick="addFromScan(${i})">➕ Theo dõi</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addFromScan(idx) {
+  const item = scanResults[idx];
+  if (!item || !item.url) { showToast('Không có link sản phẩm', 'error'); return; }
+
+  const auctionId = (item.url.match(/auction\/([a-zA-Z0-9]+)/) || [])[1];
+  if (!auctionId) { showToast('Không nhận ra mã đấu giá', 'error'); return; }
+  if (auctions.find(a => a.auctionId === auctionId)) { showToast('Đã theo dõi rồi', 'error'); return; }
+
+  // Switch to track tab and add
+  switchTab('track');
+  document.getElementById('urlInput').value = item.url;
+  document.getElementById('noteInput').value = item.title.substring(0, 30);
+  addAuction();
+  showToast(`✅ Đã thêm theo dõi: ${item.title.substring(0, 30)}`, 'success');
+}
+
+
 </script>
 </body>
 </html>
