@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookBid Tracker — Theo dõi đấu giá máy đọc sách</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0e0e10;
+      --paper: #f5f0e8;
+      --warm: #f0e6d0;
+      --accent: #c8420a;
+      --accent2: #1a6b3a;
+      --muted: #7a7065;
+      --border: #d6cfc3;
+      --card: #faf7f2;
+      --shadow: rgba(14,14,16,0.08);
+      --red: #c8420a;
+      --green: #1a6b3a;
+      --gold: #b8860b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grain texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* HEADER */
+    header {
+      border-bottom: 2px solid var(--ink);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      background: var(--ink);
+      color: var(--paper);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo span { color: var(--accent); font-size: 1.5rem; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: rgba(245,240,232,0.6);
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(245,240,232,0.08);
+      border: 1px solid rgba(245,240,232,0.15);
+      border-radius: 100px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.7rem;
+      color: rgba(245,240,232,0.8);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.idle { background: var(--gold); animation: none; }
+    .status-dot.error { background: var(--red); animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.85); }
+    }
+
+    /* LAYOUT */
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      border-right: 2px solid var(--ink);
+      padding: 1.5rem;
+      background: var(--warm);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      overflow-y: auto;
+      max-height: calc(100vh - 64px);
+      position: sticky;
+      top: 64px;
+    }
+
+    .sidebar-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.4rem;
+    }
+
+    /* INPUTS */
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--accent);
+    }
+
+    .search-wrap input {
+      padding-left: 2.4rem;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a7065' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.85rem center;
+      padding-right: 2.2rem;
+      cursor: pointer;
+    }
+
+    .price-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .price-wrap .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .field-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .currency-wrap {
+      position: relative;
+    }
+
+    .currency-wrap span {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* BUTTONS */
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.875rem;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+    }
+
+    .btn-primary:hover { background: #a83508; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1rem;
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+    }
+
+    .btn-secondary:hover { border-color: var(--ink); background: var(--warm); }
+
+    /* NOTIFICATION CONFIG */
+    .notif-config {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .toggle-label {
+      font-size: 0.82rem;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .toggle input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 100px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: white;
+      top: 3px; left: 3px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .toggle input:checked + .toggle-track { background: var(--accent); }
+    .toggle input:checked + .toggle-track::after { transform: translateX(18px); }
+
+    .scan-interval {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .scan-interval input {
+      width: 70px;
+      text-align: center;
+    }
+
+    .scan-interval span {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* WATCHLIST MINI */
+    .watchlist-mini {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .watch-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.65rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      gap: 0.5rem;
+    }
+
+    .watch-item-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      color: var(--ink);
+    }
+
+    .watch-item-price {
+      font-family: 'DM Mono', monospace;
+      color: var(--accent);
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+
+    .watch-item-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0.1rem;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+    }
+
+    .watch-item-del:hover { color: var(--red); }
+
+    /* MAIN CONTENT */
+    .main {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* STATS BAR */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .stat-card.highlight { border-color: var(--accent); background: #fff5f0; }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .stat-card.highlight .stat-value { color: var(--accent); }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+
+    /* CONTROLS BAR */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .view-label {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .sort-select {
+      width: auto;
+      padding: 0.5rem 2rem 0.5rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .view-toggle {
+      display: flex;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .view-btn {
+      background: none;
+      border: none;
+      padding: 0.45rem 0.65rem;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+    }
+
+    .view-btn.active { background: var(--ink); color: var(--paper); }
+    .view-btn:not(.active):hover { background: var(--warm); }
+
+    /* PRODUCT GRID */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .products-grid.list-view {
+      grid-template-columns: 1fr;
+    }
+
+    /* PRODUCT CARD */
+    .product-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .product-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--shadow);
+    }
+
+    .product-card.deal { border-color: var(--accent); }
+
+    .deal-badge {
+      position: absolute;
+      top: 0.6rem;
+      left: 0.6rem;
+      background: var(--accent);
+      color: white;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+
+    .watch-badge {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.6rem;
+      background: rgba(245,240,232,0.9);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      z-index: 2;
+    }
+
+    .watch-badge:hover { background: white; border-color: var(--accent); }
+    .watch-badge.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    .card-img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      background: var(--warm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+
+    .card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-img-placeholder {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: linear-gradient(135deg, var(--warm) 0%, var(--border) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+    }
+
+    .card-body {
+      padding: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .card-title {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.85rem;
+      line-height: 1.35;
+      color: var(--ink);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: transparent;
+      white-space: nowrap;
+    }
+
+    .tag.condition-new { border-color: var(--green); color: var(--green); background: #f0fff4; }
+    .tag.condition-good { border-color: var(--gold); color: var(--gold); background: #fffbeb; }
+    .tag.condition-fair { border-color: var(--muted); color: var(--muted); }
+
+    .card-price {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-top: 0.2rem;
+    }
+
+    .price-current {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--ink);
+    }
+
+    .price-current.below-max { color: var(--accent); }
+
+    .price-currency {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-left: 0.2rem;
+    }
+
+    .price-max-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 0.9rem;
+      border-top: 1px solid var(--border);
+      gap: 0.5rem;
+    }
+
+    .time-left {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .time-left.urgent { color: var(--red); font-weight: 500; }
+
+    .btn-bid {
+      padding: 0.4rem 0.9rem;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      border-radius: 6px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-bid:hover { background: var(--accent); }
+
+    /* LIST VIEW CARD */
+    .products-grid.list-view .product-card {
+      display: grid;
+      grid-template-columns: 120px 1fr auto;
+      align-items: stretch;
+    }
+
+    .products-grid.list-view .card-img-placeholder,
+    .products-grid.list-view .card-img {
+      aspect-ratio: unset;
+      height: 100%;
+      min-height: 90px;
+      border-radius: 0;
+    }
+
+    .products-grid.list-view .card-body {
+      padding: 0.75rem 1rem;
+      gap: 0.35rem;
+    }
+
+    .products-grid.list-view .card-footer {
+      border-top: none;
+      border-left: 1px solid var(--border);
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      min-width: 120px;
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      gap: 1rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 3.5rem;
+      opacity: 0.4;
+    }
+
+    .empty-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--ink);
+    }
+
+    .empty-desc {
+      font-size: 0.85rem;
+      max-width: 320px;
+      line-height: 1.5;
+    }
+
+    /* LOADING */
+    .loading-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem;
+      gap: 1rem;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 2.5px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* TOAST */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 9998;
+    }
+
+    .toast {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      max-width: 300px;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      animation: slideIn 0.25s ease;
+    }
+
+    .toast.success { border-left: 3px solid #4ade80; }
+    .toast.error { border-left: 3px solid var(--red); }
+    .toast.info { border-left: 3px solid #60a5fa; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(1rem); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(14,14,16,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.hidden { display: none; }
+
+    .modal {
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      border-radius: 16px;
+      padding: 1.5rem;
+      max-width: 500px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      line-height: 1.2;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0.2rem;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+    }
+
+    .modal-close:hover { color: var(--ink); }
+
+    .modal-img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: var(--warm);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+    }
+
+    .modal-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .modal-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .detail-key {
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+    }
+
+    .detail-val {
+      font-weight: 500;
+      text-align: right;
+    }
+
+    .bid-input-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+    }
+
+    .bid-input-row input {
+      flex: 1;
+      font-family: 'DM Mono', monospace;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .bid-input-row .btn-primary {
+      width: auto;
+      flex-shrink: 0;
+      padding: 0 1.5rem;
+    }
+
+    /* NEXT SCAN */
+    .next-scan-bar {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.5rem 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-radius: 8px;
+    }
+
+    .scan-progress {
+      flex: 1;
+      height: 3px;
+      background: rgba(245,240,232,0.15);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .scan-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 100px;
+      transition: width 1s linear;
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        max-height: none;
+        border-right: none;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .products-grid.list-view .product-card {
+        grid-template-columns: 100px 1fr;
+      }
+
+      .products-grid.list-view .card-footer {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header { padding: 0 1rem; }
+      .main { padding: 1rem; }
+      .sidebar { padding: 1rem; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+      .products-grid { grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+      .product-card .card-title { font-size: 0.75rem; }
+      .price-current { font-size: 1rem; }
+      header .header-right .scan-interval-display { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span>📖</span> BookBid Tracker
+  </div>
+  <div class="header-right">
+    <span class="scan-interval-display" id="scanIntervalDisplay">Quét mỗi 15 phút</span>
+    <div class="status-pill">
+      <div class="status-dot idle" id="statusDot"></div>
+      <span id="statusText">Chờ quét</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Search -->
+    <div class="sidebar-section">
+      <div class="section-label">🔍 Từ khoá tìm kiếm</div>
+      <div class="search-wrap">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchKeyword" placeholder="Kindle, Kobo, PocketBook..." />
+      </div>
+    </div>
+
+    <!-- Category -->
+    <div class="sidebar-section">
+      <div class="section-label">📂 Danh mục</div>
+      <select id="filterCategory">
+        <option value="">Tất cả danh mục</option>
+        <option value="ereader" selected>Máy đọc sách điện tử</option>
+        <option value="kindle">Kindle</option>
+        <option value="kobo">Kobo</option>
+        <option value="pocketbook">PocketBook</option>
+        <option value="other">Khác</option>
+      </select>
+    </div>
+
+    <!-- Condition -->
+    <div class="sidebar-section">
+      <div class="section-label">✨ Tình trạng</div>
+      <select id="filterCondition">
+        <option value="">Tất cả tình trạng</option>
+        <option value="new">Mới (New)</option>
+        <option value="like_new">Như mới (Like New)</option>
+        <option value="good">Tốt (Good)</option>
+        <option value="fair">Chấp nhận (Fair)</option>
+      </select>
+    </div>
+
+    <!-- Price filters -->
+    <div class="sidebar-section">
+      <div class="section-label">💴 Lọc theo giá (¥ JPY)</div>
+      <div class="price-wrap">
+        <div class="field-group">
+          <div class="field-label">Giá tối thiểu</div>
+          <div class="currency-wrap">
+            <input type="number" id="priceMin" placeholder="0" min="0" />
+            <span>¥</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Bid tối đa của bạn</div>
+          <div class="currency-wrap">
+            <input type="number" id="priceMax" placeholder="5000" min="0" />
+            <span>¥</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);line-height:1.4;">
+        💡 Chỉ hiển thị sản phẩm có giá bid hiện tại thấp hơn giá tối đa của bạn
+      </div>
+    </div>
+
+    <!-- Search button -->
+    <button class="btn-primary" id="btnSearch" onclick="searchProducts()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Tìm kiếm ngay
+    </button>
+
+    <button class="btn-secondary" onclick="clearFilters()">
+      Xoá bộ lọc
+    </button>
+
+    <!-- Auto scan config -->
+    <div class="sidebar-section">
+      <div class="section-label">⏱ Tự động quét</div>
+      <div class="notif-config">
+        <div class="toggle-row">
+          <span class="toggle-label">🔄 Bật tự động quét</span>
+          <label class="toggle">
+            <input type="checkbox" id="autoScanToggle" onchange="toggleAutoScan()" />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="scan-interval">
+          <div class="field-label">Mỗi</div>
+          <input type="number" id="scanInterval" value="15" min="5" max="60" style="width:60px;padding:0.4rem 0.5rem;text-align:center;" />
+          <span>phút</span>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">📧 Thông báo Email</span>
+          <label class="toggle">
+            <input type="checkbox" id="emailToggle" checked />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <input type="text" id="emailInput" placeholder="your@gmail.com" />
+      </div>
+    </div>
+
+    <!-- Watchlist -->
+    <div class="sidebar-section">
+      <div class="section-label">👁 Đang theo dõi (<span id="watchCount">0</span>)</div>
+      <div class="watchlist-mini" id="watchlistMini">
+        <div style="font-size:0.75rem;color:var(--muted);padding:0.5rem;text-align:center;">Chưa theo dõi sản phẩm nào</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- Next scan bar -->
+    <div class="next-scan-bar" id="nextScanBar" style="display:none;">
+      <span id="nextScanText">Quét tiếp theo: —</span>
+      <div class="scan-progress"><div class="scan-progress-fill" id="scanProgressFill" style="width:0%"></div></div>
+      <span id="nextScanCountdown">—</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-card highlight">
+        <div class="stat-value" id="statDeals">0</div>
+        <div class="stat-label">Deal hời tìm được</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Tổng sản phẩm</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statWatching">0</div>
+        <div class="stat-label">Đang theo dõi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statScans">0</div>
+        <div class="stat-label">Lần quét</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-bar">
+      <div class="view-label" id="resultsLabel">Kết quả tìm kiếm</div>
+      <div class="controls-right">
+        <select class="sort-select" id="sortSelect" onchange="sortProducts()">
+          <option value="deal">Deal tốt nhất</option>
+          <option value="price_asc">Giá thấp → cao</option>
+          <option value="price_desc">Giá cao → thấp</option>
+          <option value="ending">Sắp kết thúc</option>
+          <option value="newest">Mới nhất</option>
+        </select>
+        <div class="view-toggle">
+          <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Lưới">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z"/></svg>
+          </button>
+          <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="Danh sách">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="products-grid" id="productsGrid">
+      <div class="empty-state">
+        <div class="empty-icon">📖</div>
+        <div class="empty-title">Chưa có kết quả</div>
+        <div class="empty-desc">Nhập từ khoá và bấm "Tìm kiếm ngay" để tìm máy đọc sách trên Buyee. Hoặc bật tự động quét để hệ thống tự tìm deal hời cho bạn.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay hidden" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Chi tiết sản phẩm</div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-img" id="modalImg"><span>📖</span></div>
+    <div class="modal-details" id="modalDetails"></div>
+    <div>
+      <div class="section-label" style="margin-bottom:0.6rem;">Đặt bid của bạn</div>
+      <div class="bid-input-row">
+        <input type="number" id="bidAmount" placeholder="Nhập số tiền bid (¥)" />
+        <button class="btn-primary" onclick="placeBid()" style="width:auto;">Bid ngay →</button>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem;">
+        Sẽ mở Buyee trong tab mới để hoàn tất đặt bid
+      </div>
+    </div>
+    <a id="modalBuyeeLink" href="#" target="_blank" rel="noopener">
+      <button class="btn-secondary" style="margin-top:0;">Xem trên Buyee →</button>
+    </a>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ============================================================
+// DATA & STATE
+// ============================================================
+let products = [];
+let watchlist = JSON.parse(localStorage.getItem('bookbid_watchlist') || '[]');
+let scanCount = parseInt(localStorage.getItem('bookbid_scanCount') || '0');
+let autoScanTimer = null;
+let scanProgressTimer = null;
+let scanStartTime = null;
+let scanDurationMs = 15 * 60 * 1000;
+let currentView = 'grid';
+let activeProductId = null;
+let userEmail = localStorage.getItem('bookbid_email') || '';
+let lastFilters = {};
+
+// Demo/mock products (replace with real scraping via backend)
+const DEMO_PRODUCTS = [
+  {
+    id: 'jd001',
+    title: 'Kindle Paperwhite 第11世代 8GB 広告なし ブラック',
+    category: 'kindle',
+    condition: 'like_new',
+    currentBid: 3200,
+    startPrice: 1000,
+    bids: 7,
+    endsAt: Date.now() + 2 * 3600000,
+    seller: 'bookjapan_seller',
+    image: null,
+    url: 'https://buyee.jp/item/jdirectitems/auction/sample1',
+    isDeal: true,
+  },
+  {
+    id: 'jd002',
+    title: 'Kobo Libra 2 Wi-Fi 32GB ホワイト 防水 電子書籍リーダー',
+    category: 'kobo',
+    condition: 'good',
+    currentBid: 4800,
+    startPrice: 2000,
+    bids: 12,
+    endsAt: Date.now() + 5 * 3600000,
+    seller: 'tokyobooks99',
+    image: null,
+    url: 'https://buyee.jp/item/jdirectitems/auction/sample2',
+    isDeal: false,
+  },
+  {
+    id: 'jd003',
+    title: 'Kindle Oasis 第10世代 32GB シルバー 防水 Alexa',
+    category: 'kindle',
+    condition: 'new',
+    currentBid: 7500,
+    startPrice: 5000,
+    bids: 3,
+    endsAt: Date.now() + 1 * 3600000,
+    seller: 'nippon_gadget',
+    image: null,
+    url: 'https://buyee.jp/item/jdirectitems/auction/sample3',
+    isDeal: false,
+  },
+  {
+    id: 'jd004',
+    title: 'PocketBook InkPad 3 Pro 電子書籍 読書端末 美品',
+    category: 'pocketbook',
+    condition: 'good',
+    currentBid: 2100,
+    startPrice: 500,
+    bids: 5,
+    endsAt: Date.now() + 8 * 3600000,
+    seller: 'osaka_retro',
+    image: null,
+    url: 'https://buyee.jp/item/jdirectitems/auction/sample4',
+    isDeal: true,
+  },
+  {
+    id: 'jd005',
+    title: 'Kindle Scribe 16GB デジタルノートブック スタイラスペン付き',
+    category: 'kindle',
+    condition: 'like_new',
+    currentBid: 9800,
+    startPrice: 7000,
+    bids: 15,
+    endsAt: Date.now() + 24 * 3600000,
+    seller: 'tokyo_gadgets',
+    image: null,
+    url: 'https://buyee.jp/item/jdirectitems/auction/sample5',
+    isDeal: false,
+  },
+  {
+    id: 'jd006',
+    title: 'Kobo Clara 2E 16GB 防水 電子書籍リーダー ブラック',
+    category: 'kobo',
+    condition: 'fair',
+    currentBid: 1500,
+    startPrice: 300,
+    bids: 2,
+    endsAt: Date.now() + 3 * 3600000,
+    seller: 'kyoto_books',
+    image: null,
+    url: 'https://buyee.jp/item/jdirectitems/auction/sample6',
+    isDeal: true,
+  },
+];
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  if (userEmail) document.getElementById('emailInput').value = userEmail;
+  updateWatchlistUI();
+  updateStats();
+  
+  // Load saved email
+  document.getElementById('emailInput').addEventListener('change', e => {
+    userEmail = e.target.value;
+    localStorage.setItem('bookbid_email', userEmail);
+  });
+});
+
+// ============================================================
+// SEARCH
+// ============================================================
+function searchProducts() {
+  const keyword = document.getElementById('searchKeyword').value.toLowerCase().trim();
+  const category = document.getElementById('filterCategory').value;
+  const condition = document.getElementById('filterCondition').value;
+  const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
+  const priceMax = parseInt(document.getElementById('priceMax').value) || Infinity;
+
+  lastFilters = { keyword, category, condition, priceMin, priceMax };
+
+  setStatus('scanning');
+  showLoading();
+
+  // Simulate API delay
+  setTimeout(() => {
+    let results = [...DEMO_PRODUCTS];
+
+    // Keyword filter
+    if (keyword) {
+      results = results.filter(p => p.title.toLowerCase().includes(keyword));
+    }
+
+    // Category filter
+    if (category) {
+      results = results.filter(p => p.category === category || category === 'ereader');
+    }
+
+    // Condition filter
+    if (condition) {
+      results = results.filter(p => p.condition === condition);
+    }
+
+    // Price filter
+    results = results.filter(p => p.currentBid >= priceMin && p.currentBid <= priceMax);
+
+    // Mark deals (below max price with good margin)
+    if (priceMax !== Infinity) {
+      results = results.map(p => ({
+        ...p,
+        isDeal: p.currentBid < priceMax * 0.7
+      }));
+    }
+
+    products = results;
+    scanCount++;
+    localStorage.setItem('bookbid_scanCount', scanCount);
+
+    sortProducts(true);
+    setStatus('idle');
+
+    const deals = results.filter(p => p.isDeal).length;
+    if (deals > 0) {
+      showToast(`🎉 Tìm thấy ${deals} deal hời! Giá dưới ngưỡng bid tối đa của bạn.`, 'success');
+      if (document.getElementById('emailToggle').checked && userEmail) {
+        sendEmailNotification(results.filter(p => p.isDeal));
+      }
+    } else {
+      showToast(`Tìm thấy ${results.length} sản phẩm`, 'info');
+    }
+
+    updateStats();
+  }, 1200);
+}
+
+function showLoading() {
+  document.getElementById('productsGrid').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span>Đang quét Buyee...</span>
+    </div>
+  `;
+}
+
+function clearFilters() {
+  document.getElementById('searchKeyword').value = '';
+  document.getElementById('filterCategory').value = 'ereader';
+  document.getElementById('filterCondition').value = '';
+  document.getElementById('priceMin').value = '';
+  document.getElementById('priceMax').value = '';
+  products = [];
+  renderProducts([]);
+  updateStats();
+}
+
+// ============================================================
+// SORT & RENDER
+// ============================================================
+function sortProducts(skipNotify = false) {
+  const sort = document.getElementById('sortSelect').value;
+  let sorted = [...products];
+
+  if (sort === 'deal') sorted.sort((a, b) => (b.isDeal - a.isDeal) || a.currentBid - b.currentBid);
+  else if (sort === 'price_asc') sorted.sort((a, b) => a.currentBid - b.currentBid);
+  else if (sort === 'price_desc') sorted.sort((a, b) => b.currentBid - a.currentBid);
+  else if (sort === 'ending') sorted.sort((a, b) => a.endsAt - b.endsAt);
+  else if (sort === 'newest') sorted.sort((a, b) => b.id.localeCompare(a.id));
+
+  renderProducts(sorted);
+}
+
+function renderProducts(list) {
+  const grid = document.getElementById('productsGrid');
+  const priceMax = parseInt(document.getElementById('priceMax').value) || Infinity;
+  const label = document.getElementById('resultsLabel');
+
+  if (list.length === 0 && products.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📖</div>
+        <div class="empty-title">Chưa có kết quả</div>
+        <div class="empty-desc">Nhập từ khoá và bấm "Tìm kiếm ngay" để bắt đầu.</div>
+      </div>`;
+    label.textContent = 'Kết quả tìm kiếm';
+    return;
+  }
+
+  if (list.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">Không tìm thấy</div>
+        <div class="empty-desc">Thử thay đổi bộ lọc hoặc từ khoá tìm kiếm.</div>
+      </div>`;
+    label.textContent = '0 sản phẩm';
+    return;
+  }
+
+  label.textContent = `${list.length} sản phẩm`;
+
+  grid.innerHTML = list.map(p => {
+    const watched = watchlist.some(w => w.id === p.id);
+    const belowMax = p.currentBid < priceMax;
+    const endsIn = formatTimeLeft(p.endsAt);
+    const urgent = p.endsAt - Date.now() < 3600000;
+    const condClass = p.condition === 'new' ? 'condition-new' : p.condition === 'like_new' ? 'condition-new' : p.condition === 'good' ? 'condition-good' : 'condition-fair';
+    const condLabel = { new: '✨ Mới', like_new: '⭐ Như mới', good: '👍 Tốt', fair: '👌 OK' }[p.condition] || p.condition;
+    const catLabel = { kindle: 'Kindle', kobo: 'Kobo', pocketbook: 'PocketBook', ereader: 'E-Reader' }[p.category] || p.category;
+
+    return `
+      <div class="product-card${p.isDeal ? ' deal' : ''}" onclick="openModal('${p.id}')">
+        ${p.isDeal ? '<div class="deal-badge">🔥 Deal hời</div>' : ''}
+        <button class="watch-badge${watched ? ' active' : ''}" onclick="event.stopPropagation(); toggleWatch('${p.id}')" title="${watched ? 'Bỏ theo dõi' : 'Theo dõi'}">
+          <svg width="13" height="13" fill="${watched ? 'white' : 'none'}" stroke="${watched ? 'white' : 'currentColor'}" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+        </button>
+        <div class="card-img-placeholder">📖</div>
+        <div class="card-body">
+          <div class="card-title">${p.title}</div>
+          <div class="card-meta">
+            <span class="tag">${catLabel}</span>
+            <span class="tag ${condClass}">${condLabel}</span>
+            <span class="tag">${p.bids} bids</span>
+          </div>
+          <div class="card-price">
+            <div>
+              <span class="price-current${belowMax && priceMax !== Infinity ? ' below-max' : ''}">¥${p.currentBid.toLocaleString()}</span>
+              ${belowMax && priceMax !== Infinity ? `<div class="price-max-label">✅ Dưới ngưỡng của bạn</div>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="time-left${urgent ? ' urgent' : ''}">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            ${endsIn}
+          </span>
+          <button class="btn-bid" onclick="event.stopPropagation(); openModal('${p.id}')">Bid →</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(id) {
+  activeProductId = id;
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+
+  const priceMax = parseInt(document.getElementById('priceMax').value) || Infinity;
+  const belowMax = p.currentBid < priceMax;
+  const condLabel = { new: '✨ Mới', like_new: '⭐ Như mới', good: '👍 Tốt', fair: '👌 OK' }[p.condition] || p.condition;
+
+  document.getElementById('modalTitle').textContent = p.title;
+  document.getElementById('modalImg').innerHTML = '<span>📖</span>';
+  document.getElementById('modalBuyeeLink').href = p.url;
+  document.getElementById('bidAmount').value = p.currentBid + 100;
+
+  document.getElementById('modalDetails').innerHTML = `
+    <div class="detail-row"><span class="detail-key">Giá bid hiện tại</span><span class="detail-val" style="font-size:1.3rem;font-family:'Syne',sans-serif;font-weight:800;color:${belowMax && priceMax !== Infinity ? 'var(--accent)' : 'var(--ink)'}">¥${p.currentBid.toLocaleString()}</span></div>
+    <div class="detail-row"><span class="detail-key">Số lần bid</span><span class="detail-val">${p.bids} lần</span></div>
+    <div class="detail-row"><span class="detail-key">Tình trạng</span><span class="detail-val">${condLabel}</span></div>
+    <div class="detail-row"><span class="detail-key">Kết thúc</span><span class="detail-val">${formatTimeLeft(p.endsAt)}</span></div>
+    <div class="detail-row"><span class="detail-key">Người bán</span><span class="detail-val">${p.seller}</span></div>
+    ${priceMax !== Infinity ? `<div class="detail-row"><span class="detail-key">Ngưỡng bid của bạn</span><span class="detail-val">¥${priceMax.toLocaleString()}</span></div>` : ''}
+    ${belowMax && priceMax !== Infinity ? '<div style="background:#fff5f0;border:1px solid var(--accent);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--accent);">🔥 Giá hiện tại nằm trong ngân sách của bạn!</div>' : ''}
+  `;
+
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.add('hidden');
+  activeProductId = null;
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function placeBid() {
+  const p = products.find(x => x.id === activeProductId);
+  if (!p) return;
+  const amount = document.getElementById('bidAmount').value;
+  if (!amount) { showToast('Nhập số tiền bid', 'error'); return; }
+  window.open(p.url, '_blank');
+  showToast(`Mở Buyee để bid ¥${parseInt(amount).toLocaleString()} cho sản phẩm này`, 'success');
+  closeModal();
+}
+
+// ============================================================
+// WATCHLIST
+// ============================================================
+function toggleWatch(id) {
+  const idx = watchlist.findIndex(w => w.id === id);
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+
+  if (idx >= 0) {
+    watchlist.splice(idx, 1);
+    showToast('Đã bỏ theo dõi', 'info');
+  } else {
+    watchlist.push({ id: p.id, title: p.title, currentBid: p.currentBid, url: p.url });
+    showToast('✅ Đã thêm vào danh sách theo dõi', 'success');
+  }
+
+  localStorage.setItem('bookbid_watchlist', JSON.stringify(watchlist));
+  updateWatchlistUI();
+  sortProducts(true);
+  updateStats();
+}
+
+function removeWatch(id) {
+  watchlist = watchlist.filter(w => w.id !== id);
+  localStorage.setItem('bookbid_watchlist', JSON.stringify(watchlist));
+  updateWatchlistUI();
+  updateStats();
+  sortProducts(true);
+}
+
+function updateWatchlistUI() {
+  const container = document.getElementById('watchlistMini');
+  document.getElementById('watchCount').textContent = watchlist.length;
+
+  if (watchlist.length === 0) {
+    container.innerHTML = '<div style="font-size:0.75rem;color:var(--muted);padding:0.5rem;text-align:center;">Chưa theo dõi sản phẩm nào</div>';
+    return;
+  }
+
+  container.innerHTML = watchlist.map(w => `
+    <div class="watch-item">
+      <span class="watch-item-name">${w.title}</span>
+      <span class="watch-item-price">¥${w.currentBid.toLocaleString()}</span>
+      <button class="watch-item-del" onclick="removeWatch('${w.id}')" title="Xoá">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// AUTO SCAN
+// ============================================================
+function toggleAutoScan() {
+  const enabled = document.getElementById('autoScanToggle').checked;
+  const interval = parseInt(document.getElementById('scanInterval').value) || 15;
+  scanDurationMs = interval * 60 * 1000;
+  document.getElementById('scanIntervalDisplay').textContent = `Quét mỗi ${interval} phút`;
+
+  if (enabled) {
+    document.getElementById('nextScanBar').style.display = 'flex';
+    scheduleNextScan();
+    showToast(`✅ Tự động quét mỗi ${interval} phút đã bật`, 'success');
+  } else {
+    clearTimeout(autoScanTimer);
+    clearInterval(scanProgressTimer);
+    document.getElementById('nextScanBar').style.display = 'none';
+    setStatus('idle');
+    showToast('Tự động quét đã tắt', 'info');
+  }
+}
+
+function scheduleNextScan() {
+  if (autoScanTimer) clearTimeout(autoScanTimer);
+  if (scanProgressTimer) clearInterval(scanProgressTimer);
+
+  scanStartTime = Date.now();
+  updateScanProgress();
+
+  scanProgressTimer = setInterval(updateScanProgress, 1000);
+  autoScanTimer = setTimeout(() => {
+    searchProducts();
+    if (document.getElementById('autoScanToggle').checked) {
+      scheduleNextScan();
+    }
+  }, scanDurationMs);
+}
+
+function updateScanProgress() {
+  if (!scanStartTime) return;
+  const elapsed = Date.now() - scanStartTime;
+  const pct = Math.min((elapsed / scanDurationMs) * 100, 100);
+  const remaining = Math.max(scanDurationMs - elapsed, 0);
+  const mins = Math.floor(remaining / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+  const interval = parseInt(document.getElementById('scanInterval').value) || 15;
+
+  document.getElementById('scanProgressFill').style.width = pct + '%';
+  document.getElementById('nextScanCountdown').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+  document.getElementById('nextScanText').textContent = `Quét tiếp theo (mỗi ${interval} phút)`;
+}
+
+// ============================================================
+// EMAIL NOTIFICATION (simulation)
+// ============================================================
+function sendEmailNotification(deals) {
+  const email = document.getElementById('emailInput').value;
+  if (!email) {
+    showToast('⚠️ Nhập email để nhận thông báo. Xem README để cấu hình Gmail.', 'info');
+    return;
+  }
+  // Real email is sent by backend (Node.js). This just shows the UI feedback.
+  showToast(`📧 Gửi thông báo ${deals.length} deal đến ${email}`, 'success');
+  console.log('[Email simulation]', { to: email, deals: deals.map(d => d.title) });
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function setView(v) {
+  currentView = v;
+  const grid = document.getElementById('productsGrid');
+  const gridBtn = document.getElementById('gridViewBtn');
+  const listBtn = document.getElementById('listViewBtn');
+  grid.classList.toggle('list-view', v === 'list');
+  gridBtn.classList.toggle('active', v === 'grid');
+  listBtn.classList.toggle('active', v === 'list');
+}
+
+function setStatus(s) {
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  dot.className = 'status-dot';
+  if (s === 'scanning') { dot.className = 'status-dot'; text.textContent = 'Đang quét...'; }
+  else if (s === 'idle') { dot.classList.add('idle'); text.textContent = 'Chờ quét'; }
+  else if (s === 'error') { dot.classList.add('error'); text.textContent = 'Lỗi kết nối'; }
+}
+
+function updateStats() {
+  document.getElementById('statDeals').textContent = products.filter(p => p.isDeal).length;
+  document.getElementById('statTotal').textContent = products.length;
+  document.getElementById('statWatching').textContent = watchlist.length;
+  document.getElementById('statScans').textContent = scanCount;
+}
+
+function formatTimeLeft(ts) {
+  const ms = ts - Date.now();
+  if (ms <= 0) return 'Đã kết thúc';
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (h >= 24) return `${Math.floor(h / 24)} ngày`;
+  if (h > 0) return `${h}g ${m}p`;
+  return `${m} phút`;
+}
+
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="flex:1">${msg}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:rgba(245,240,232,0.5);padding:0;margin-left:0.5rem;font-size:1rem;">×</button>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 5000);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && !document.getElementById('modalOverlay').classList.contains('hidden')) return;
+  if (e.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') searchProducts();
+});
+</script>
+</body>
+</html>
