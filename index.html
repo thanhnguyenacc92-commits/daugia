@@ -403,6 +403,7 @@ let auctions = JSON.parse(localStorage.getItem('yj_auctions_v3') || '[]');
 let timers = {};
 
 function save() { localStorage.setItem('yj_auctions_v3', JSON.stringify(auctions)); }
+function saveAndSync() { save(); const cfg=getGistCfg(); if(!cfg.token||!cfg.id) return; clearTimeout(gistSyncTimer); gistSyncTimer=setTimeout(()=>syncToGist().catch(()=>{}),3000); }
 
 function extractId(url) {
   const m = url.match(/auction\/([a-zA-Z0-9]+)/);
@@ -672,7 +673,7 @@ async function addAuction() {
     auctions[idx].loading = false;
     auctions[idx].lastUpdated = Date.now();
   }
-  save(); renderAll();
+  saveAndSync(); renderAll();
 
   if (data.fetchError) showToast('⚠️ ' + (data.fetchErrorMsg || 'Không tải được — nhấn Làm mới'), 'error');
   else showToast(`✅ Đã thêm: ${data.title?.substring(0,40) || 'Đấu giá mới'}`, 'success');
@@ -693,7 +694,7 @@ async function refreshOne(id) {
   auctions[idx].data = data;
   auctions[idx].loading = false;
   auctions[idx].lastUpdated = Date.now();
-  save(); renderAll();
+  saveAndSync(); renderAll();
   if (!data.fetchError) showToast(`✅ Đã làm mới`, 'success');
   else showToast('⚠️ ' + (data.fetchErrorMsg || 'Không tải được'), 'error');
 }
@@ -706,9 +707,9 @@ async function refreshAll() {
 // ============================================================
 // DELETE / CLEAR
 // ============================================================
-function deleteAuction(id) { auctions = auctions.filter(a => a.id !== id); save(); renderAll(); }
-function clearEnded() { auctions = auctions.filter(a => !a.data?.ended); save(); renderAll(); }
-function clearAll() { if (!confirm('Xóa tất cả?')) return; auctions = []; save(); renderAll(); }
+function deleteAuction(id) { auctions = auctions.filter(a => a.id !== id); saveAndSync(); renderAll(); }
+function clearEnded() { auctions = auctions.filter(a => !a.data?.ended); saveAndSync(); renderAll(); }
+function clearAll() { if (!confirm('Xóa tất cả?')) return; auctions = []; saveAndSync(); renderAll(); }
 
 // ============================================================
 // SORT
@@ -763,7 +764,7 @@ function updateCost(id, field, value) {
   if (idx === -1) return;
   if (!auctions[idx].costs) auctions[idx].costs = {};
   auctions[idx].costs[field] = value;
-  save();
+  saveAndSync();
   const a = auctions[idx];
   const c = calcCosts(a);
   const svnEl = document.getElementById(`shipvn_${id}`);
@@ -919,7 +920,7 @@ function updateCountdown(id) {
   if (cd.cls === 'ended') {
     clearInterval(timers[id]);
     const idx = auctions.findIndex(x => x.id === id);
-    if (idx !== -1) { auctions[idx].data.ended = true; save(); }
+    if (idx !== -1) { auctions[idx].data.ended = true; saveAndSync(); }
   }
   const diff = a.data.endTime - Date.now();
   if (diff > 0 && diff < 1800000 && !a._alerted30) {
@@ -954,7 +955,7 @@ setInterval(async () => {
       if (idx !== -1) { auctions[idx].data = data; auctions[idx].lastUpdated = Date.now(); }
     } catch {}
   }
-  save(); renderAll();
+  saveAndSync(); renderAll();
   document.getElementById('refreshLabel').textContent = 'Auto refresh';
 }, 5 * 60 * 1000);
 
@@ -1079,14 +1080,6 @@ async function syncFromGist() {
 
 // Auto-sync to Gist after every save (debounced 3s)
 let gistSyncTimer = null;
-const origSave = save;
-function save() {
-  origSave();
-  const cfg = getGistCfg();
-  if (!cfg.token || !cfg.id) return;
-  clearTimeout(gistSyncTimer);
-  gistSyncTimer = setTimeout(() => syncToGist().catch(() => {}), 3000);
-}
 
 // On load: restore gist status indicator + pull from Gist if configured
 (async () => {
