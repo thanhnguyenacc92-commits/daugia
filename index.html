@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yahoo Auction Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ====== THEME VARIABLES ====== */
+:root[data-theme="dark"] {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c28;
+  --border: #2a2a3d;
+  --text: #e8e8f0;
+  --muted: #6b6b8a;
+  --grid-line: rgba(68,136,255,0.04);
+  --cost-bg: rgba(0,0,0,0.2);
+  --card-hover: #3a3a55;
+  --input-bg: #0a0a0f;
+  --shadow: rgba(0,0,0,0.4);
+}
+:root[data-theme="light"] {
+  --bg: #f4f4f8;
+  --surface: #ffffff;
+  --surface2: #eeeef4;
+  --border: #d8d8e8;
+  --text: #1a1a2e;
+  --muted: #8888aa;
+  --grid-line: rgba(68,136,255,0.06);
+  --cost-bg: rgba(0,0,0,0.03);
+  --card-hover: #c8c8de;
+  --input-bg: #f9f9fc;
+  --shadow: rgba(0,0,0,0.08);
+}
+:root {
+  --accent: #ff6b35;
+  --accent2: #e0a800;
+  --green: #00b894;
+  --red: #e84393;
+  --blue: #4488ff;
+  --purple: #a855f7;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { transition: background 0.25s; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.25s, color 0.25s;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+.app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+
+/* ====== HEADER ====== */
+.header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+.logo { width: 44px; height: 44px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.header-text h1 { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+.header-text p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-family: 'Space Mono', monospace; color: var(--muted); }
+.badge span { color: var(--accent2); font-weight: 700; }
+
+/* ====== THEME TOGGLE ====== */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px 5px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+  transition: all 0.2s;
+  user-select: none;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+.theme-toggle .toggle-track {
+  width: 32px; height: 18px;
+  background: var(--border);
+  border-radius: 9px;
+  position: relative;
+  transition: background 0.25s;
+  flex-shrink: 0;
+}
+[data-theme="light"] .theme-toggle .toggle-track { background: var(--accent); }
+.theme-toggle .toggle-thumb {
+  width: 12px; height: 12px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px; left: 3px;
+  transition: transform 0.25s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+[data-theme="light"] .theme-toggle .toggle-thumb { transform: translateX(14px); }
+.theme-toggle .toggle-icon { font-size: 14px; }
+
+/* ====== LIVE DOT ====== */
+.auto-refresh { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.dot-live { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: livePulse 2s infinite; }
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+/* ====== ADD FORM ====== */
+.add-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; box-shadow: 0 2px 12px var(--shadow); }
+.input-wrap { flex: 1; min-width: 200px; }
+.input-wrap label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.url-input { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 12px; outline: none; transition: border-color 0.2s; }
+.url-input:focus { border-color: var(--accent); }
+.url-input::placeholder { color: var(--muted); }
+.add-btn { align-self: flex-end; background: var(--accent); color: white; border: none; border-radius: 8px; padding: 11px 22px; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s, transform 0.1s; display: flex; align-items: center; gap: 8px; }
+.add-btn:hover { opacity: 0.85; }
+.add-btn:active { transform: scale(0.97); }
+.add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ====== TOOLBAR ====== */
+.toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.toolbar-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 7px 14px; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+.toolbar-btn:hover { border-color: var(--accent); color: var(--text); }
+.toolbar-btn.danger:hover { border-color: var(--red); color: var(--red); }
+.sort-select { margin-left: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 7px 12px; font-size: 12px; color: var(--muted); cursor: pointer; outline: none; }
+
+/* ====== CARDS ====== */
+.cards { display: flex; flex-direction: column; gap: 16px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--border);
+  transition: background 0.3s;
+  z-index: 1;
+}
+.card.urgent::before { background: var(--red); }
+.card.warning::before { background: var(--accent2); }
+.card.safe::before { background: var(--green); }
+.card.loading::before { background: var(--blue); animation: pulse 1s infinite; }
+.card.ended::before { background: var(--muted); }
+.card:hover { border-color: var(--card-hover); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.card-top { display: grid; grid-template-columns: 100px 1fr auto; gap: 16px; padding: 16px 20px; align-items: start; }
+
+/* Thumbnail */
+.thumb { width: 100px; height: 100px; border-radius: 8px; background: var(--surface2); object-fit: cover; flex-shrink: 0; border: 1px solid var(--border); }
+.thumb-placeholder { width: 100px; height: 100px; border-radius: 8px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; border: 1px solid var(--border); }
+
+/* Card body */
+.card-body { min-width: 0; }
+.card-title { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; line-height: 1.4; }
+.card-title a { color: inherit; text-decoration: none; }
+.card-title a:hover { color: var(--accent); }
+.card-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.meta-chip { font-family: 'Space Mono', monospace; font-size: 11px; padding: 3px 8px; border-radius: 5px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+.meta-chip.price { color: var(--accent2); border-color: rgba(224,168,0,0.35); background: rgba(224,168,0,0.08); font-size: 13px; font-weight: 700; }
+.meta-chip.bids { color: var(--blue); border-color: rgba(68,136,255,0.3); background: rgba(68,136,255,0.07); }
+.meta-chip.buyout { color: var(--green); border-color: rgba(0,184,148,0.3); background: rgba(0,184,148,0.07); }
+.meta-chip.ship { color: var(--purple); border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.07); }
+
+/* Countdown */
+.countdown { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; }
+.countdown.urgent { color: var(--red); background: rgba(232,67,147,0.1); border: 1px solid rgba(232,67,147,0.3); animation: blink 1s infinite; }
+.countdown.warning { color: var(--accent2); background: rgba(224,168,0,0.1); border: 1px solid rgba(224,168,0,0.3); }
+.countdown.safe { color: var(--green); background: rgba(0,184,148,0.08); border: 1px solid rgba(0,184,148,0.25); }
+.countdown.ended { color: var(--muted); background: var(--surface2); border: 1px solid var(--border); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* Progress bar */
+.progress-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; transition: width 1s linear; }
+
+/* Card actions */
+.card-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-shrink: 0; }
+.action-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 11px; color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.action-btn:hover { border-color: var(--accent); color: var(--accent); }
+.action-btn.del:hover { border-color: var(--red); color: var(--red); }
+
+/* ====== COST PANEL ====== */
+.cost-panel { border-top: 1px solid var(--border); background: var(--cost-bg); padding: 14px 20px; }
+.cost-panel-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; }
+.cost-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.cost-field { display: flex; flex-direction: column; gap: 4px; }
+.cost-field label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+.cost-input {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s, background 0.2s;
+}
+.cost-input:focus { border-color: var(--accent); }
+.cost-input::placeholder { color: var(--muted); }
+.cost-input[readonly] { background: var(--surface2); color: var(--green); cursor: default; border-color: rgba(0,184,148,0.25); }
+.cost-input.auto-fill { background: var(--surface2); color: var(--purple); cursor: default; border-color: rgba(168,85,247,0.25); }
+
+/* Summary */
+.cost-summary { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 10px; border-top: 1px dashed var(--border); }
+.summary-chip { font-family: 'Space Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 5px; white-space: nowrap; }
+.summary-chip.total-cost { background: rgba(232,67,147,0.08); border: 1px solid rgba(232,67,147,0.25); color: var(--red); }
+.summary-chip.profit { background: rgba(0,184,148,0.08); border: 1px solid rgba(0,184,148,0.25); color: var(--green); }
+.summary-chip.profit.neg { background: rgba(232,67,147,0.08); border: 1px solid rgba(232,67,147,0.25); color: var(--red); }
+.summary-chip.shipvn { background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.25); color: var(--purple); }
+
+/* Loading */
+.card-loading-msg { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Error */
+.fetch-error { font-size: 12px; color: var(--muted); padding: 6px 10px; background: rgba(232,67,147,0.07); border: 1px solid rgba(232,67,147,0.2); border-radius: 6px; display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+
+/* Empty */
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+.empty p { font-size: 13px; line-height: 1.6; }
+
+/* Toast */
+.toast-wrap { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 999; }
+.toast { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 13px; max-width: 340px; animation: slideIn 0.3s ease; box-shadow: 0 4px 16px var(--shadow); }
+.toast.urgent { border-color: var(--red); }
+.toast.success { border-color: var(--green); }
+.toast.error { border-color: var(--red); }
+@keyframes slideIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+@media (max-width: 700px) {
+  .card-top { grid-template-columns: 72px 1fr; }
+  .card-actions { display: none; }
+  .add-form { flex-direction: column; }
+  .add-btn { width: 100%; justify-content: center; }
+  .cost-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">🏷</div>
+    <div class="header-text">
+      <h1>AUCTION TRACKER</h1>
+      <p>Yahoo! Auctions Japan — theo dõi & tính chi phí</p>
+    </div>
+    <div class="header-right">
+      <div class="badge">Đang theo dõi: <span id="countBadge">0</span></div>
+      <div class="auto-refresh">
+        <div class="dot-live"></div>
+        <span id="refreshLabel">Auto refresh</span>
+      </div>
+      <!-- THEME TOGGLE -->
+      <div class="theme-toggle" onclick="toggleTheme()" title="Chuyển sáng/tối">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="toggle-icon" id="themeIcon">🌙</span>
+        <span id="themeLabel">Tối</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="add-form">
+    <div class="input-wrap">
+      <label>Link đấu giá Yahoo Auctions Japan</label>
+      <input type="text" class="url-input" id="urlInput"
+        placeholder="https://page.auctions.yahoo.co.jp/jp/auction/xxxxx">
+    </div>
+    <div class="input-wrap" style="max-width:160px">
+      <label>Ghi chú (tùy chọn)</label>
+      <input type="text" class="url-input" id="noteInput" placeholder="Kindle PPW5...">
+    </div>
+    <button class="add-btn" id="addBtn" onclick="addAuction()">
+      <span>＋</span> Thêm theo dõi
+    </button>
+  </div>
+
+  <div class="toolbar" id="toolbar" style="display:none">
+    <button class="toolbar-btn" onclick="refreshAll()">🔄 Làm mới tất cả</button>
+    <button class="toolbar-btn" onclick="clearEnded()">🧹 Xóa đã kết thúc</button>
+    <button class="toolbar-btn danger" onclick="clearAll()">🗑 Xóa tất cả</button>
+    <select class="sort-select" onchange="sortCards(this.value)">
+      <option value="added">Sắp xếp: Mới thêm</option>
+      <option value="time">Sắp xếp: Sắp hết giờ</option>
+      <option value="price">Sắp xếp: Giá cao nhất</option>
+    </select>
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="empty" id="empty">
+    <div class="empty-icon">🔍</div>
+    <h3>Chưa theo dõi đấu giá nào</h3>
+    <p>Paste link từ <strong>auctions.yahoo.co.jp</strong> vào ô trên<br>để bắt đầu theo dõi giá, thời gian và tính chi phí.</p>
+  </div>
+
+</div>
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ============================================================
+// CONSTANTS
+// ============================================================
+const SHIP_VN_RATE = 165000;
+const PHI_MUA_HO_PCT = 0.03;
+
+// ============================================================
+// THEME
+// ============================================================
+function initTheme() {
+  const saved = localStorage.getItem('yj_theme') || 'dark';
+  applyTheme(saved);
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('yj_theme', t);
+  document.getElementById('themeIcon').textContent = t === 'dark' ? '🌙' : '☀️';
+  document.getElementById('themeLabel').textContent = t === 'dark' ? 'Tối' : 'Sáng';
+}
+initTheme();
+
+// ============================================================
+// DATA
+// ============================================================
+let auctions = JSON.parse(localStorage.getItem('yj_auctions_v3') || '[]');
+let timers = {};
+
+function save() { localStorage.setItem('yj_auctions_v3', JSON.stringify(auctions)); }
+
+function extractId(url) {
+  const m = url.match(/auction\/([a-zA-Z0-9]+)/);
+  return m ? m[1] : null;
+}
+
+// ============================================================
+// FETCH VIA MULTIPLE PROXIES
+// ============================================================
+const PROXIES = [
+  id => `https://corsproxy.io/?url=${encodeURIComponent('https://page.auctions.yahoo.co.jp/jp/auction/'+id)}`,
+  id => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://page.auctions.yahoo.co.jp/jp/auction/'+id)}`,
+  id => `https://thingproxy.freeboard.io/fetch/https://page.auctions.yahoo.co.jp/jp/auction/${id}`,
+];
+
+async function fetchAuctionHTML(auctionId) {
+  for (const makeUrl of PROXIES) {
+    try {
+      const res = await fetch(makeUrl(auctionId), { signal: AbortSignal.timeout(12000) });
+      if (res.ok) {
+        const text = await res.text();
+        if (text.length > 500) return text; // valid page
+      }
+    } catch {}
+  }
+  throw new Error('All proxies failed');
+}
+
+// ============================================================
+// PARSE HTML
+// ============================================================
+function parseYahooPage(html, auctionId) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  // Title — try many selectors
+  let title = '';
+  for (const sel of ['h1.ProductTitle__text','h1[class*="Title"]','h1','[class*="ProductTitle"]','[class*="title"]']) {
+    const el = doc.querySelector(sel);
+    if (el && el.textContent.trim().length > 3) { title = el.textContent.trim(); break; }
+  }
+  if (!title) {
+    const m = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (m) title = m[1].replace(/\s*[-|].*$/, '').trim();
+  }
+
+  // Price — ¥ amounts
+  let price = null;
+  for (const sel of ['.Price__value','[class*="Price"] .u-textMedium','[class*="price"] strong','[class*="Price"]']) {
+    const el = doc.querySelector(sel);
+    if (el) { const v = el.textContent.replace(/[^0-9,]/g,''); if (v) { price = v; break; } }
+  }
+  if (!price) { const m = html.match(/現在[価格\s]*(?:<[^>]+>)*\s*([\d,]+)\s*円/); if (m) price = m[1]; }
+  if (!price) { const m = html.match(/"currentPrice"\s*:\s*(\d+)/); if (m) price = m[1]; }
+
+  // Buyout
+  let buyout = null;
+  const bm = html.match(/即決[価格\s]*(?:<[^>]+>)*\s*([\d,]+)\s*円/);
+  if (bm) buyout = bm[1];
+  if (!buyout) { const m = html.match(/"buynowPrice"\s*:\s*(\d+)/); if (m) buyout = m[1]; }
+
+  // Bids
+  let bids = '0';
+  const bidm = html.match(/入札(?:件数)?[^0-9]*(\d+)/);
+  if (bidm) bids = bidm[1];
+
+  // End time
+  let endTime = null;
+  const timeEl = doc.querySelector('time[datetime]');
+  if (timeEl) endTime = new Date(timeEl.getAttribute('datetime')).getTime();
+  if (!endTime || isNaN(endTime)) {
+    const em = html.match(/終了日時[^0-9]*(\d{4})[年\/\-](\d{1,2})[月\/\-](\d{1,2})[日\s]*[^\d]*(\d{1,2})[時:h](\d{2})/s);
+    if (em) {
+      const [, y, mo, d, h, mi] = em;
+      endTime = new Date(`${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}T${h.padStart(2,'0')}:${mi}:00+09:00`).getTime();
+    }
+  }
+  if (!endTime || isNaN(endTime)) {
+    const jm = html.match(/"endTime"\s*:\s*"([^"]+)"/);
+    if (jm) endTime = new Date(jm[1]).getTime();
+  }
+
+  // Image — multiple attempts
+  let image = null;
+  const metaOg = doc.querySelector('meta[property="og:image"]');
+  if (metaOg) image = metaOg.getAttribute('content');
+  if (!image) {
+    for (const sel of [
+      '.ProductImage__image img',
+      '[class*="ProductImage"] img',
+      '[class*="Thumbnail"] img',
+      '.img img',
+      'img[class*="main"]',
+    ]) {
+      const el = doc.querySelector(sel);
+      if (el) { image = el.getAttribute('src') || el.getAttribute('data-src') || el.getAttribute('data-lazy-src'); if (image) break; }
+    }
+  }
+  if (!image) {
+    // regex from raw HTML
+    const im = html.match(/og:image[^>]*content="([^"]+)"/);
+    if (im) image = im[1];
+  }
+  if (!image) {
+    const im2 = html.match(/content="(https:\/\/[^"]*\.(jpg|jpeg|png|webp))[^"]*"\s*property="og:image"/i);
+    if (im2) image = im2[1];
+  }
+  // Make sure image URL is absolute
+  if (image && image.startsWith('//')) image = 'https:' + image;
+
+  // Shipping from Chiba
+  let shipDomestic = null;
+  const sm = html.match(/千葉[^0-9（(]*[（(]?[^0-9]*?([\d,]+)\s*円/);
+  if (sm) shipDomestic = sm[1];
+  if (!shipDomestic) {
+    const sm2 = html.match(/送料[^0-9]*?([\d,]+)\s*円/);
+    if (sm2) shipDomestic = sm2[1];
+  }
+
+  const ended = html.includes('この商品の入札は終了しました') || (html.includes('終了') && html.includes('落札者'));
+
+  return { title: title || null, price, buyout, bids, endTime: isNaN(endTime) ? null : endTime, image, ended, auctionId, shipDomestic };
+}
+
+// ============================================================
+// AI PARSE (Claude via Anthropic API — used as main parser)
+// ============================================================
+async function aiParse(html, auctionId) {
+  // Strip scripts/styles, keep text + meta tags
+  const stripped = html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .substring(0, 6000);
+
+  // Also extract all og: meta from raw HTML for image
+  const ogImageM = html.match(/og:image[^>]*content="([^"]+)"/);
+  const ogImage = ogImageM ? ogImageM[1] : null;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 800,
+      messages: [{
+        role: 'user',
+        content: `You are parsing a Yahoo Japan Auction page. Extract the following and return ONLY a raw JSON object (no markdown, no backticks):
+
+{
+  "title": "item title in Japanese or English",
+  "price": "current bid price digits only e.g. 12345 (no yen sign, no commas)",
+  "buyout": "buy-it-now price digits only or null",
+  "bids": "number of bids as string e.g. 3",
+  "endTime": "ISO8601 string in JST timezone e.g. 2025-06-01T15:00:00+09:00 or null",
+  "image": "${ogImage || 'direct https image url or null'}",
+  "ended": false,
+  "shipDomestic": "shipping fee FROM CHIBA (千葉) in digits only or null"
+}
+
+Page text (first 6000 chars):
+${stripped}`
+      }]
+    })
+  });
+
+  if (!res.ok) throw new Error('API error ' + res.status);
+  const data = await res.json();
+
+  if (data.error) throw new Error(data.error.message || 'API error');
+
+  const text = data.content?.[0]?.text || '';
+  const clean = text.replace(/```json|```/g, '').trim();
+  const parsed = JSON.parse(clean);
+
+  if (parsed.endTime && typeof parsed.endTime === 'string') {
+    const t = new Date(parsed.endTime).getTime();
+    parsed.endTime = isNaN(t) ? null : t;
+  }
+  // Use og:image if AI didn't find one
+  if (!parsed.image && ogImage) parsed.image = ogImage;
+  if (parsed.image && parsed.image.startsWith('//')) parsed.image = 'https:' + parsed.image;
+
+  return { ...parsed, auctionId };
+}
+
+// ============================================================
+// FETCH + PARSE — tries regex parse first, then AI
+// ============================================================
+async function fetchAndParse(url, auctionId) {
+  let html = null;
+  let fetchErr = null;
+
+  try {
+    html = await fetchAuctionHTML(auctionId);
+  } catch(e) {
+    fetchErr = e;
+  }
+
+  if (html) {
+    // Try regex parse first (fast)
+    const regexData = parseYahooPage(html, auctionId);
+    // If we got at least title + price, return regex data
+    if (regexData.title && regexData.price) return regexData;
+
+    // Otherwise use AI to parse the HTML (better accuracy)
+    try {
+      const aiData = await aiParse(html, auctionId);
+      if (aiData.title) return aiData;
+    } catch {}
+
+    // If AI also fails, return what regex gave us
+    if (regexData.title) return regexData;
+  }
+
+  // All fetches failed — return error state
+  return {
+    title: `Phiên #${auctionId}`,
+    price: null, buyout: null, bids: null, endTime: null,
+    image: null, ended: false, auctionId,
+    fetchError: true,
+    fetchErrorMsg: fetchErr ? 'Không kết nối được proxy — kiểm tra mạng và thử Làm mới' : 'Không đọc được dữ liệu từ trang'
+  };
+}
+
+// ============================================================
+// ADD AUCTION
+// ============================================================
+async function addAuction() {
+  const urlInput = document.getElementById('urlInput');
+  const noteInput = document.getElementById('noteInput');
+  const btn = document.getElementById('addBtn');
+
+  const url = urlInput.value.trim();
+  if (!url) { showToast('Vui lòng nhập link đấu giá', 'error'); return; }
+  if (!url.includes('auctions.yahoo.co.jp')) { showToast('Link phải từ auctions.yahoo.co.jp', 'error'); return; }
+
+  const auctionId = extractId(url);
+  if (!auctionId) { showToast('Không nhận diện được mã đấu giá', 'error'); return; }
+  if (auctions.find(a => a.auctionId === auctionId)) { showToast('Đấu giá này đã được theo dõi rồi', 'error'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Đang tải...';
+
+  const entry = {
+    id: Date.now(), url, auctionId,
+    note: noteInput.value.trim(),
+    addedAt: Date.now(),
+    data: null, loading: true, lastUpdated: null,
+    costs: { buyPrice: '', sellPrice: '', weight: '' }
+  };
+
+  auctions.unshift(entry);
+  save(); renderAll();
+  urlInput.value = ''; noteInput.value = '';
+
+  const data = await fetchAndParse(url, auctionId);
+  const idx = auctions.findIndex(a => a.id === entry.id);
+  if (idx !== -1) {
+    auctions[idx].data = data;
+    auctions[idx].loading = false;
+    auctions[idx].lastUpdated = Date.now();
+  }
+  save(); renderAll();
+
+  if (data.fetchError) showToast('⚠️ ' + (data.fetchErrorMsg || 'Không tải được — nhấn Làm mới'), 'error');
+  else showToast(`✅ Đã thêm: ${data.title?.substring(0,40) || 'Đấu giá mới'}`, 'success');
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>＋</span> Thêm theo dõi';
+}
+
+// ============================================================
+// REFRESH
+// ============================================================
+async function refreshOne(id) {
+  const idx = auctions.findIndex(a => a.id === id);
+  if (idx === -1) return;
+  auctions[idx].loading = true;
+  save(); renderAll();
+  const data = await fetchAndParse(auctions[idx].url, auctions[idx].auctionId);
+  auctions[idx].data = data;
+  auctions[idx].loading = false;
+  auctions[idx].lastUpdated = Date.now();
+  save(); renderAll();
+  if (!data.fetchError) showToast(`✅ Đã làm mới`, 'success');
+  else showToast('⚠️ ' + (data.fetchErrorMsg || 'Không tải được'), 'error');
+}
+
+async function refreshAll() {
+  for (const a of auctions) { if (!a.data?.ended) await refreshOne(a.id); }
+  showToast('✅ Đã làm mới tất cả', 'success');
+}
+
+// ============================================================
+// DELETE / CLEAR
+// ============================================================
+function deleteAuction(id) { auctions = auctions.filter(a => a.id !== id); save(); renderAll(); }
+function clearEnded() { auctions = auctions.filter(a => !a.data?.ended); save(); renderAll(); }
+function clearAll() { if (!confirm('Xóa tất cả?')) return; auctions = []; save(); renderAll(); }
+
+// ============================================================
+// SORT
+// ============================================================
+function sortCards(by) {
+  if (by === 'time') auctions.sort((a,b) => (a.data?.endTime||Infinity)-(b.data?.endTime||Infinity));
+  else if (by === 'price') auctions.sort((a,b) => (parseInt((b.data?.price||'0').replace(/,/g,''))||0)-(parseInt((a.data?.price||'0').replace(/,/g,''))||0));
+  else auctions.sort((a,b) => b.addedAt - a.addedAt);
+  renderAll();
+}
+
+// ============================================================
+// COUNTDOWN
+// ============================================================
+function getCountdownInfo(endTime) {
+  if (!endTime) return { text: '-- : -- : --', cls: 'safe', pct: 100 };
+  const diff = endTime - Date.now();
+  if (diff <= 0) return { text: 'ĐÃ KẾT THÚC', cls: 'ended', pct: 0 };
+  const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+  let text, cls;
+  if (diff < 3600000) { text = `⚠️ ${m}ph ${s}s`; cls = diff < 1800000 ? 'urgent' : 'warning'; }
+  else if (diff < 86400000) { text = `${h}h ${m}ph`; cls = 'warning'; }
+  else { text = `${Math.floor(diff/86400000)} ngày ${h%24}h`; cls = 'safe'; }
+  return { text, cls, pct: Math.max(0, Math.min(100, (diff/(7*86400000))*100)) };
+}
+
+// ============================================================
+// COST CALC
+// ============================================================
+function calcCosts(a) {
+  const c = a.costs || {};
+  const buyPrice = parseFloat(c.buyPrice) || 0;
+  const sellPrice = parseFloat(c.sellPrice) || 0;
+  const weight = parseFloat(c.weight) || 0;
+  const shipDomesticJPY = parseFloat((a.data?.shipDomestic||'').replace(/,/g,'')) || 0;
+  const phiMuaHo = Math.round(buyPrice * PHI_MUA_HO_PCT);
+  const shipVN = Math.round(weight * SHIP_VN_RATE);
+  return { buyPrice, sellPrice, weight, shipDomesticJPY, phiMuaHo, shipVN };
+}
+const fmtVND = n => n ? n.toLocaleString('vi-VN') + ' ₫' : '—';
+const fmtJPY = n => n ? '¥' + n.toLocaleString('ja-JP') : '—';
+
+function updateCost(id, field, value) {
+  const idx = auctions.findIndex(a => a.id === id);
+  if (idx === -1) return;
+  if (!auctions[idx].costs) auctions[idx].costs = {};
+  auctions[idx].costs[field] = value;
+  save();
+  const a = auctions[idx];
+  const c = calcCosts(a);
+  const pmhEl = document.getElementById(`phimuaho_${id}`);
+  const svnEl = document.getElementById(`shipvn_${id}`);
+  const sumEl = document.getElementById(`summary_${id}`);
+  if (pmhEl) pmhEl.value = c.phiMuaHo ? fmtJPY(c.phiMuaHo) : '';
+  if (svnEl) svnEl.value = c.shipVN ? fmtVND(c.shipVN) : '';
+  if (sumEl) sumEl.innerHTML = renderSummary(a, c);
+}
+
+function renderSummary(a, c) {
+  if (!c.buyPrice && !c.sellPrice) return '<span style="font-size:11px;color:var(--muted)">Nhập giá mua & giá bán để xem lợi nhuận</span>';
+  const totalJPY = c.buyPrice + c.phiMuaHo + c.shipDomesticJPY;
+  const profitVND = c.sellPrice - c.shipVN;
+  let html = '';
+  if (totalJPY > 0) html += `<span class="summary-chip total-cost">📦 JP: ${fmtJPY(totalJPY)}</span>`;
+  if (c.shipVN > 0) html += `<span class="summary-chip shipvn">✈️ Ship VN: ${fmtVND(c.shipVN)}</span>`;
+  if (c.sellPrice > 0 && c.shipVN > 0) {
+    html += `<span class="summary-chip profit ${profitVND<0?'neg':''}">
+      ${profitVND>=0?'📈 Còn lại':'📉 Lỗ'}: ${fmtVND(Math.abs(profitVND))}
+    </span>`;
+  }
+  return html || '<span style="font-size:11px;color:var(--muted)">Nhập thêm thông tin để tính</span>';
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderAll() {
+  const container = document.getElementById('cards');
+  const empty = document.getElementById('empty');
+  const toolbar = document.getElementById('toolbar');
+  document.getElementById('countBadge').textContent = auctions.length;
+
+  if (!auctions.length) { container.innerHTML=''; empty.style.display='block'; toolbar.style.display='none'; return; }
+  empty.style.display='none'; toolbar.style.display='flex';
+  Object.values(timers).forEach(clearInterval); timers = {};
+  container.innerHTML = auctions.map(renderCard).join('');
+  auctions.forEach(a => {
+    if (a.data?.endTime && !a.data?.ended) timers[a.id] = setInterval(() => updateCountdown(a.id), 1000);
+  });
+}
+
+function renderCard(a) {
+  const d = a.data;
+  const cd = d?.endTime ? getCountdownInfo(d.endTime) : { text: '...', cls: 'safe', pct: 50 };
+  const cardCls = a.loading ? 'loading' : (d?.ended ? 'ended' : cd.cls);
+  const lastUpd = a.lastUpdated ? new Date(a.lastUpdated).toLocaleTimeString('vi-VN') : '';
+
+  const imgSrc = d?.image || '';
+  const thumbHtml = imgSrc
+    ? `<img class="thumb" src="${imgSrc}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const placeholderHtml = `<div class="thumb-placeholder" style="${imgSrc?'display:none':''}">📦</div>`;
+
+  let bodyHtml = '';
+  if (a.loading) {
+    bodyHtml = `<div class="card-title">Đang tải dữ liệu...</div>
+      <div class="card-loading-msg"><div class="spinner"></div>Đang lấy thông tin từ Yahoo Japan...</div>`;
+  } else if (!d || d.fetchError) {
+    bodyHtml = `<div class="card-title">Phiên #${a.auctionId}</div>
+      <div class="fetch-error">⚠️ ${d?.fetchErrorMsg || 'Không tải được dữ liệu'}</div>`;
+  } else {
+    const priceFmt = d.price ? `¥${d.price}` : 'N/A';
+    const buyoutHtml = d.buyout ? `<span class="meta-chip buyout">Mua ngay ¥${d.buyout}</span>` : '';
+    const bidsHtml = d.bids != null ? `<span class="meta-chip bids">🏁 ${d.bids} lượt</span>` : '';
+    const shipHtml = d.shipDomestic
+      ? `<span class="meta-chip ship">🚚 Chiba ¥${d.shipDomestic}</span>`
+      : `<span class="meta-chip ship" style="opacity:0.5">🚚 Ship: —</span>`;
+    const cdHtml = `<span class="countdown ${cd.cls}" id="cd_${a.id}">${cd.text}</span>`;
+    const pColor = cd.cls==='urgent'?'var(--red)':cd.cls==='warning'?'var(--accent2)':'var(--green)';
+
+    bodyHtml = `
+      <div class="card-title"><a href="${a.url}" target="_blank">${d.title || 'Đấu giá Yahoo Japan'}</a></div>
+      <div class="card-meta">
+        <span class="meta-chip price">${priceFmt}</span>
+        ${bidsHtml}${buyoutHtml}${shipHtml}${cdHtml}
+      </div>
+      ${a.note ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">📝 ${a.note}</div>` : ''}
+      <div class="progress-bar"><div class="progress-fill" style="width:${d.ended?'0':cd.pct.toFixed(1)}%;background:${pColor}"></div></div>
+      ${lastUpd ? `<div style="font-size:10px;color:var(--muted);margin-top:6px;font-family:'Space Mono',monospace">cập nhật lúc ${lastUpd}</div>` : ''}`;
+  }
+
+  const costs = a.costs || {};
+  const c = calcCosts(a);
+  const costPanel = `
+    <div class="cost-panel">
+      <div class="cost-panel-title">💰 Chi phí & Lợi nhuận</div>
+      <div class="cost-grid">
+        <div class="cost-field">
+          <label>Giá mua (¥)</label>
+          <input class="cost-input" type="number" placeholder="0" value="${costs.buyPrice||''}" oninput="updateCost(${a.id},'buyPrice',this.value)">
+        </div>
+        <div class="cost-field">
+          <label>Giá bán (₫)</label>
+          <input class="cost-input" type="number" placeholder="0" value="${costs.sellPrice||''}" oninput="updateCost(${a.id},'sellPrice',this.value)">
+        </div>
+        <div class="cost-field">
+          <label>Ship nội địa — Chiba</label>
+          <input class="cost-input auto-fill" type="text" placeholder="Lấy từ web..." value="${d?.shipDomestic ? '¥'+d.shipDomestic : ''}" readonly>
+        </div>
+        <div class="cost-field">
+          <label>Phí mua hộ 3%</label>
+          <input class="cost-input" type="text" id="phimuaho_${a.id}" placeholder="—" value="${c.phiMuaHo ? fmtJPY(c.phiMuaHo) : ''}" readonly>
+        </div>
+        <div class="cost-field">
+          <label>Khối lượng (kg)</label>
+          <input class="cost-input" type="number" step="0.1" placeholder="0.0" value="${costs.weight||''}" oninput="updateCost(${a.id},'weight',this.value)">
+        </div>
+        <div class="cost-field">
+          <label>Ship VN (165k × kg)</label>
+          <input class="cost-input" type="text" id="shipvn_${a.id}" placeholder="—" value="${c.shipVN ? fmtVND(c.shipVN) : ''}" readonly>
+        </div>
+      </div>
+      <div class="cost-summary" id="summary_${a.id}">${renderSummary(a, c)}</div>
+    </div>`;
+
+  return `
+    <div class="card ${cardCls}" id="card_${a.id}">
+      <div class="card-top">
+        <div>${thumbHtml}${placeholderHtml}</div>
+        <div class="card-body">${bodyHtml}</div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="refreshOne(${a.id})">🔄 Làm mới</button>
+          <a href="${a.url}" target="_blank" style="text-decoration:none"><button class="action-btn">🔗 Mở</button></a>
+          <button class="action-btn del" onclick="deleteAuction(${a.id})">✕ Xóa</button>
+        </div>
+      </div>
+      ${costPanel}
+    </div>`;
+}
+
+function updateCountdown(id) {
+  const a = auctions.find(x => x.id === id);
+  if (!a?.data?.endTime) return;
+  const el = document.getElementById(`cd_${id}`);
+  if (!el) { clearInterval(timers[id]); return; }
+  const cd = getCountdownInfo(a.data.endTime);
+  el.textContent = cd.text;
+  el.className = `countdown ${cd.cls}`;
+  const card = document.getElementById(`card_${id}`);
+  if (card) card.className = `card ${cd.cls}`;
+  if (cd.cls === 'ended') {
+    clearInterval(timers[id]);
+    const idx = auctions.findIndex(x => x.id === id);
+    if (idx !== -1) { auctions[idx].data.ended = true; save(); }
+  }
+  const diff = a.data.endTime - Date.now();
+  if (diff > 0 && diff < 1800000 && !a._alerted30) {
+    showToast(`🔔 Còn ${Math.floor(diff/60000)} phút! ${a.data.title?.substring(0,30)}`, 'urgent');
+    a._alerted30 = true;
+  }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type = 'info') {
+  const wrap = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), type === 'urgent' ? 8000 : 4000);
+}
+
+// ============================================================
+// AUTO REFRESH every 5 min
+// ============================================================
+setInterval(async () => {
+  const toRefresh = auctions.filter(a => !a.data?.ended && !a.loading);
+  if (!toRefresh.length) return;
+  document.getElementById('refreshLabel').textContent = 'Đang làm mới...';
+  for (const a of toRefresh) {
+    try {
+      const data = await fetchAndParse(a.url, a.auctionId);
+      const idx = auctions.findIndex(x => x.id === a.id);
+      if (idx !== -1) { auctions[idx].data = data; auctions[idx].lastUpdated = Date.now(); }
+    } catch {}
+  }
+  save(); renderAll();
+  document.getElementById('refreshLabel').textContent = 'Auto refresh';
+}, 5 * 60 * 1000);
+
+document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') addAuction(); });
+renderAll();
+</script>
+</body>
+</html>
