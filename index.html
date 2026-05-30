@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="description" content="Yahoo Auction JP Tracker - Tìm deal hời tự động" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AuctionHunter" />
+  <title>AuctionHunter JP</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-icon">⚡</span>
+          <span class="logo-text">AuctionHunter<span class="logo-jp">JP</span></span>
+        </div>
+        <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar">✕</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="search">
+          <span class="nav-icon">🔍</span><span>Tìm kiếm</span>
+        </button>
+        <button class="nav-item" data-tab="watchlist">
+          <span class="nav-icon">👁</span><span>Theo dõi</span>
+          <span class="badge" id="watchBadge">0</span>
+        </button>
+        <button class="nav-item" data-tab="alerts">
+          <span class="nav-icon">🔔</span><span>Cảnh báo</span>
+          <span class="badge" id="alertBadge">0</span>
+        </button>
+        <button class="nav-item" data-tab="settings">
+          <span class="nav-icon">⚙</span><span>Cài đặt</span>
+        </button>
+      </nav>
+
+      <div class="scan-status" id="scanStatus">
+        <div class="scan-dot" id="scanDot"></div>
+        <div class="scan-info">
+          <span class="scan-label">Auto Scan</span>
+          <span class="scan-time" id="scanTime">Chờ cấu hình...</span>
+        </div>
+        <button class="scan-toggle" id="scanToggle" title="Bật/tắt auto scan">▶</button>
+      </div>
+    </aside>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main -->
+    <main class="main">
+      <!-- Top bar -->
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+        <div class="topbar-title" id="topbarTitle">Tìm kiếm</div>
+        <div class="topbar-actions">
+          <button class="icon-btn" id="refreshBtn" title="Refresh">↻</button>
+          <div class="notif-bell" id="notifBell">
+            🔔
+            <span class="notif-dot hidden" id="notifDot"></span>
+          </div>
+        </div>
+      </header>
+
+      <!-- === TAB: SEARCH === -->
+      <section class="tab-content active" id="tab-search">
+        <!-- Search Panel -->
+        <div class="search-panel">
+          <div class="search-hero">
+            <h1 class="search-headline">Săn deal <span class="accent">Yahoo Auction</span> JP</h1>
+            <p class="search-sub">Tự động tìm & theo dõi sản phẩm đấu giá</p>
+          </div>
+
+          <div class="search-form" id="searchForm">
+            <!-- Keyword -->
+            <div class="form-group full">
+              <label class="form-label">Từ khoá sản phẩm</label>
+              <div class="search-input-wrap">
+                <input type="text" id="keyword" class="form-input" placeholder="Ví dụ: iPhone 15, Nintendo Switch, カメラ..." />
+                <button class="search-btn" id="searchBtn">
+                  <span class="btn-text">TÌM</span>
+                  <span class="btn-loading hidden">⟳</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <!-- Max bid price -->
+              <div class="form-group">
+                <label class="form-label">Giá bid tối đa (¥)</label>
+                <input type="number" id="maxPrice" class="form-input" placeholder="Ví dụ: 50000" min="0" />
+              </div>
+
+              <!-- Condition -->
+              <div class="form-group">
+                <label class="form-label">Tình trạng</label>
+                <select id="condition" class="form-select">
+                  <option value="">Tất cả</option>
+                  <option value="new">Mới (新品)</option>
+                  <option value="used">Đã dùng (中古)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <!-- Category -->
+              <div class="form-group">
+                <label class="form-label">Danh mục</label>
+                <select id="category" class="form-select">
+                  <option value="">Tất cả danh mục</option>
+                  <option value="2084006051">Điện tử - Electronics</option>
+                  <option value="23316">Máy tính - Computers</option>
+                  <option value="2084006052">Điện thoại - Phones</option>
+                  <option value="2084006053">Game & Hobby</option>
+                  <option value="2084006054">Camera</option>
+                  <option value="2084006055">Âm nhạc - Music</option>
+                  <option value="2084006056">Thời trang - Fashion</option>
+                  <option value="2084006057">Đồ gia dụng</option>
+                  <option value="2084006058">Đồ sưu tập</option>
+                  <option value="2084006059">Xe cộ - Vehicles</option>
+                </select>
+              </div>
+
+              <!-- Sort -->
+              <div class="form-group">
+                <label class="form-label">Sắp xếp</label>
+                <select id="sortBy" class="form-select">
+                  <option value="cbids">Giá thấp → cao</option>
+                  <option value="-cbids">Giá cao → thấp</option>
+                  <option value="end">Kết thúc sớm nhất</option>
+                  <option value="-bids">Bid nhiều nhất</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-secondary" id="watchJobBtn" disabled>
+                ＋ Theo dõi tìm kiếm này
+              </button>
+              <label class="toggle-label">
+                <input type="checkbox" id="buyNowOnly" />
+                <span>Chỉ "Mua ngay"</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section" id="resultsSection">
+          <div class="results-header">
+            <span class="results-count" id="resultsCount"></span>
+            <div class="results-view">
+              <button class="view-btn active" id="gridView" title="Grid">⊞</button>
+              <button class="view-btn" id="listView" title="List">☰</button>
+            </div>
+          </div>
+          <div class="results-grid" id="resultsGrid">
+            <div class="empty-state" id="emptyState">
+              <div class="empty-icon">🎯</div>
+              <p>Nhập từ khoá và bấm TÌM để bắt đầu</p>
+            </div>
+          </div>
+          <div class="load-more-wrap hidden" id="loadMoreWrap">
+            <button class="btn-secondary" id="loadMoreBtn">Tải thêm</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- === TAB: WATCHLIST === -->
+      <section class="tab-content" id="tab-watchlist">
+        <div class="page-header">
+          <h2>Danh sách theo dõi</h2>
+          <button class="btn-danger-sm" id="clearWatchBtn">Xoá tất cả</button>
+        </div>
+        <div id="watchlistJobs" class="jobs-list">
+          <div class="empty-state">
+            <div class="empty-icon">👁</div>
+            <p>Chưa có tìm kiếm nào đang theo dõi</p>
+            <p class="empty-sub">Tìm kiếm sản phẩm và bấm "Theo dõi tìm kiếm này"</p>
+          </div>
+        </div>
+
+        <div class="section-divider">
+          <span>Sản phẩm đang đấu giá</span>
+        </div>
+        <div id="watchedItems" class="results-grid"></div>
+      </section>
+
+      <!-- === TAB: ALERTS === -->
+      <section class="tab-content" id="tab-alerts">
+        <div class="page-header">
+          <h2>Thông báo deal hời</h2>
+          <button class="btn-secondary-sm" id="clearAlertsBtn">Đánh dấu đã đọc</button>
+        </div>
+        <div id="alertsList" class="alerts-list">
+          <div class="empty-state">
+            <div class="empty-icon">🔔</div>
+            <p>Chưa có thông báo nào</p>
+            <p class="empty-sub">Khi tìm thấy deal hời, thông báo sẽ hiện ở đây</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- === TAB: SETTINGS === -->
+      <section class="tab-content" id="tab-settings">
+        <div class="page-header">
+          <h2>Cài đặt</h2>
+        </div>
+
+        <div class="settings-sections">
+          <!-- API Config -->
+          <div class="settings-card">
+            <h3 class="settings-title">🔑 Cấu hình API</h3>
+            <p class="settings-desc">Để tìm kiếm thực trên Yahoo Auction JP, bạn cần proxy URL (xem hướng dẫn bên dưới)</p>
+            <div class="form-group">
+              <label class="form-label">Proxy API URL</label>
+              <input type="url" id="proxyUrl" class="form-input" placeholder="https://your-worker.workers.dev/search" />
+              <span class="form-hint">Cloudflare Worker URL của bạn</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Yahoo Japan App ID (tuỳ chọn)</label>
+              <input type="text" id="yahooAppId" class="form-input" placeholder="dj00..." />
+              <span class="form-hint"><a href="https://developer.yahoo.co.jp/start/" target="_blank" class="link">Đăng ký miễn phí tại Yahoo Japan Developer</a></span>
+            </div>
+            <button class="btn-primary" id="saveApiBtn">Lưu cấu hình</button>
+            <div class="test-result hidden" id="testResult"></div>
+          </div>
+
+          <!-- Email Notifications -->
+          <div class="settings-card">
+            <h3 class="settings-title">📧 Thông báo Gmail</h3>
+            <p class="settings-desc">Nhận email khi tìm thấy deal hời. Dùng <a href="https://www.emailjs.com/" target="_blank" class="link">EmailJS</a> (miễn phí 200 email/tháng)</p>
+            <div class="form-group">
+              <label class="form-label">EmailJS Service ID</label>
+              <input type="text" id="emailServiceId" class="form-input" placeholder="service_xxxxxxx" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">EmailJS Template ID</label>
+              <input type="text" id="emailTemplateId" class="form-input" placeholder="template_xxxxxxx" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">EmailJS Public Key</label>
+              <input type="text" id="emailPublicKey" class="form-input" placeholder="xxxxxxxxxxxxxx" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email nhận thông báo</label>
+              <input type="email" id="notifEmail" class="form-input" placeholder="your@gmail.com" />
+            </div>
+            <button class="btn-primary" id="saveEmailBtn">Lưu & Test Email</button>
+          </div>
+
+          <!-- Scan Settings -->
+          <div class="settings-card">
+            <h3 class="settings-title">⏱ Cài đặt Auto Scan</h3>
+            <div class="form-group">
+              <label class="form-label">Tần suất quét (phút)</label>
+              <div class="range-wrap">
+                <input type="range" id="scanInterval" min="15" max="60" step="5" value="30" class="range-input" />
+                <span class="range-value" id="scanIntervalVal">30 phút</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ngưỡng deal hời (% thấp hơn giá tối đa)</label>
+              <div class="range-wrap">
+                <input type="range" id="dealThreshold" min="5" max="50" step="5" value="20" class="range-input" />
+                <span class="range-value" id="dealThresholdVal">20%</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="toggle-label large">
+                <input type="checkbox" id="pushNotif" />
+                <span>Push notification trên trình duyệt</span>
+              </label>
+            </div>
+            <button class="btn-primary" id="saveScanBtn">Lưu cài đặt scan</button>
+          </div>
+
+          <!-- Setup Guide -->
+          <div class="settings-card guide-card">
+            <h3 class="settings-title">📖 Hướng dẫn cài đặt</h3>
+            <div class="guide-steps">
+              <div class="guide-step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                  <strong>Deploy Cloudflare Worker (proxy)</strong>
+                  <code class="code-block">npm install -g wrangler
+cd worker/
+wrangler deploy</code>
+                  <p>Lấy URL từ output, dán vào "Proxy API URL" ở trên</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                  <strong>Đăng ký Yahoo Japan Developer</strong>
+                  <p>Vào <a href="https://developer.yahoo.co.jp/start/" target="_blank" class="link">developer.yahoo.co.jp</a> → Đăng ký App ID miễn phí</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                  <strong>Cài đặt EmailJS</strong>
+                  <p>Vào <a href="https://www.emailjs.com/" target="_blank" class="link">emailjs.com</a> → Tạo account → Kết nối Gmail → Tạo template với các biến: <code>{{title}}</code>, <code>{{price}}</code>, <code>{{url}}</code>, <code>{{items}}</code></p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                  <strong>Deploy PWA lên GitHub Pages</strong>
+                  <code class="code-block">git init
+git add .
+git commit -m "Initial commit"
+git push origin main</code>
+                  <p>Vào Settings → Pages → chọn branch main</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Item Detail Modal -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal" id="itemModal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>
