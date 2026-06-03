@@ -1,0 +1,439 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.app{padding:1rem 0;font-family:var(--font-sans)}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:var(--color-text-primary);border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;color:var(--color-background-primary);font-size:18px}
+.topbar-title{font-size:16px;font-weight:500;color:var(--color-text-primary)}
+.topbar-sub{font-size:12px;color:var(--color-text-tertiary)}
+.topbar-badge{font-size:11px;padding:3px 10px;border-radius:99px;background:#E6F1FB;color:#185FA5;font-weight:500}
+.search-bar{display:flex;gap:8px;margin-bottom:12px}
+.search-bar input{flex:1;font-size:14px;padding:0 14px;height:40px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);background:var(--color-background-primary);color:var(--color-text-primary)}
+.search-bar input:focus{outline:none;border-color:var(--color-border-primary)}
+.btn-search{height:40px;padding:0 20px;background:var(--color-text-primary);color:var(--color-background-primary);border:none;border-radius:var(--border-radius-lg);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-search:hover{opacity:0.85}
+.btn-search:disabled{opacity:0.4;cursor:not-allowed}
+.filter-panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1rem}
+.filter-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;user-select:none}
+.filter-header-left{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.filter-header-right{display:flex;align-items:center;gap:8px}
+.filter-active-count{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--color-background-info);color:var(--color-text-info);font-weight:500}
+.chevron{font-size:16px;color:var(--color-text-secondary);transition:transform 0.2s}
+.chevron.open{transform:rotate(180deg)}
+.filter-body{padding:14px 16px;border-top:0.5px solid var(--color-border-tertiary)}
+.filter-section{margin-bottom:14px}
+.filter-section:last-child{margin-bottom:0}
+.filter-section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.filter-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:12px;color:var(--color-text-secondary)}
+.fg input,.fg select{font-size:13px;padding:0 10px;height:34px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary)}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--color-border-primary);background:var(--color-background-primary)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;padding:5px 12px;border:0.5px solid var(--color-border-secondary);border-radius:99px;background:transparent;color:var(--color-text-secondary);cursor:pointer;transition:all 0.12s}
+.chip:hover{border-color:var(--color-border-primary);color:var(--color-text-primary)}
+.chip.on{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.filter-actions{display:flex;gap:8px;align-items:center;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary);margin-top:14px}
+.btn-reset{font-size:12px;padding:6px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-secondary);cursor:pointer}
+.btn-reset:hover{background:var(--color-background-secondary)}
+.status-txt{font-size:12px;color:var(--color-text-tertiary);margin-left:auto}
+.results-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.results-count{font-size:13px;color:var(--color-text-secondary)}
+.results-count strong{color:var(--color-text-primary)}
+.sort-select{font-size:12px;padding:5px 10px;height:30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary)}
+.items-list{display:flex;flex-direction:column;gap:6px}
+.item-card{display:grid;grid-template-columns:72px 1fr;gap:12px;padding:12px 14px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);text-decoration:none;color:inherit;transition:border-color 0.15s,background 0.15s}
+.item-card:hover{border-color:var(--color-border-primary);background:var(--color-background-secondary)}
+.item-thumb{width:72px;height:72px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);object-fit:cover;display:flex;align-items:center;justify-content:center;color:var(--color-text-tertiary);font-size:20px;flex-shrink:0}
+.item-thumb img{width:72px;height:72px;border-radius:var(--border-radius-md);object-fit:cover}
+.item-body{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+.item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.item-title{font-size:13px;font-weight:500;color:var(--color-text-primary);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1;min-width:0}
+.item-prices{text-align:right;flex-shrink:0}
+.price-main{font-size:15px;font-weight:500;color:var(--color-text-primary);white-space:nowrap}
+.price-buynow{font-size:11px;color:var(--color-text-secondary);white-space:nowrap;margin-top:1px}
+.item-bottom{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500}
+.tag-green{background:#EAF3DE;color:#3B6D11}
+.tag-blue{background:#E6F1FB;color:#185FA5}
+.tag-amber{background:#FAEEDA;color:#854F0B}
+.tag-gray{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.time-txt{font-size:11px;color:var(--color-text-tertiary);margin-left:auto;display:flex;align-items:center;gap:3px}
+.empty{text-align:center;padding:3rem 1rem}
+.empty-icon{font-size:36px;color:var(--color-text-tertiary);display:block;margin-bottom:10px}
+.empty p{font-size:13px;color:var(--color-text-secondary);margin-bottom:4px}
+.empty small{font-size:12px;color:var(--color-text-tertiary)}
+.loading{text-align:center;padding:2.5rem 1rem}
+.spinner{display:inline-block;width:22px;height:22px;border:2px solid var(--color-border-tertiary);border-top-color:var(--color-text-secondary);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-size:13px;color:var(--color-text-secondary)}
+.loading small{font-size:11px;color:var(--color-text-tertiary)}
+.notice{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.5}
+.notice i{flex-shrink:0;margin-top:1px;color:var(--color-text-tertiary)}
+.err{padding:9px 12px;background:#FCEBEB;border:0.5px solid #F09595;border-radius:var(--border-radius-md);font-size:12px;color:#A32D2D;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px}
+.err i{flex-shrink:0}
+.open-link{font-size:12px;color:var(--color-text-info);text-decoration:none}
+.open-link:hover{text-decoration:underline}
+.sep{height:0.5px;background:var(--color-border-tertiary);margin:12px 0}
+</style>
+
+<h2 class="sr-only">Yahoo Auctions Japan Crawler — tìm kiếm và lọc sản phẩm đấu giá</h2>
+
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-icon"><i class="ti ti-gavel" aria-hidden="true"></i></div>
+      <div>
+        <div class="topbar-title">Yahoo Auctions Crawler</div>
+        <div class="topbar-sub">Tìm kiếm sản phẩm đấu giá từ Nhật Bản</div>
+      </div>
+    </div>
+    <span class="topbar-badge">JP</span>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="keyword" value="kindle" placeholder="Nhập từ khóa tìm kiếm...">
+    <button class="btn-search" id="search-btn" onclick="doSearch()">
+      <i class="ti ti-search" aria-hidden="true" style="font-size:15px"></i> Tìm kiếm
+    </button>
+  </div>
+
+  <div class="filter-panel">
+    <div class="filter-header" onclick="toggleFilters()">
+      <div class="filter-header-left">
+        <i class="ti ti-adjustments-horizontal" aria-hidden="true" style="font-size:16px;color:var(--color-text-secondary)"></i>
+        Bộ lọc nâng cao
+      </div>
+      <div class="filter-header-right">
+        <span class="filter-active-count" id="active-count" style="display:none">0 đang bật</span>
+        <i class="ti ti-chevron-down chevron" id="chevron" aria-hidden="true"></i>
+      </div>
+    </div>
+
+    <div class="filter-body" id="filter-body" style="display:none">
+      <div class="filter-section">
+        <div class="filter-section-label">Danh mục & Vị trí</div>
+        <div class="filter-row">
+          <div class="fg">
+            <label>Danh mục</label>
+            <select id="category">
+              <option value="2084288672">Kindle / E-reader</option>
+              <option value="23312">Điện thoại di động</option>
+              <option value="23316">Laptop / Máy tính</option>
+              <option value="2084228536">Máy ảnh</option>
+              <option value="">Tất cả danh mục</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Tỉnh nhận hàng</label>
+            <select id="dest_pref">
+              <option value="12">千葉県 — Chiba</option>
+              <option value="13">東京都 — Tokyo</option>
+              <option value="14">神奈川県 — Kanagawa</option>
+              <option value="27">大阪府 — Osaka</option>
+              <option value="23">愛知県 — Aichi</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Số lượng kết quả</label>
+            <select id="per_page">
+              <option value="20">20 sản phẩm</option>
+              <option value="50" selected>50 sản phẩm</option>
+              <option value="100">100 sản phẩm</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="filter-section">
+        <div class="filter-section-label">Khoảng giá (¥)</div>
+        <div class="filter-row" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="fg">
+            <label>Giá tối thiểu</label>
+            <input type="number" id="min_price" placeholder="0" min="0" step="500">
+          </div>
+          <div class="fg">
+            <label>Giá tối đa</label>
+            <input type="number" id="max_price" placeholder="Không giới hạn" min="0" step="500">
+          </div>
+          <div class="fg">
+            <label>Sắp xếp theo</label>
+            <select id="sort_order">
+              <option value="new">Mới đăng nhất</option>
+              <option value="end">Kết thúc sớm nhất</option>
+              <option value="price_asc">Giá: thấp → cao</option>
+              <option value="price_desc">Giá: cao → thấp</option>
+              <option value="bids">Nhiều lượt đấu giá</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="filter-section">
+        <div class="filter-section-label">Loại đấu giá</div>
+        <div class="chips" id="type-chips">
+          <button class="chip on" data-val="all">Tất cả</button>
+          <button class="chip" data-val="auction">Chỉ đấu giá</button>
+          <button class="chip" data-val="buynow">Chỉ mua ngay (即決)</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="filter-section">
+        <div class="filter-section-label">Điều kiện thêm</div>
+        <div class="chips" id="opt-chips">
+          <button class="chip on" data-val="free_ship"><i class="ti ti-truck" aria-hidden="true" style="font-size:13px;margin-right:3px;vertical-align:-1px"></i>Miễn phí ship</button>
+          <button class="chip" data-val="new_item"><i class="ti ti-sparkles" aria-hidden="true" style="font-size:13px;margin-right:3px;vertical-align:-1px"></i>Hàng mới</button>
+          <button class="chip" data-val="no_reserve"><i class="ti ti-lock-open" aria-hidden="true" style="font-size:13px;margin-right:3px;vertical-align:-1px"></i>Không có giá sàn</button>
+          <button class="chip" data-val="jp10"><i class="ti ti-medal" aria-hidden="true" style="font-size:13px;margin-right:3px;vertical-align:-1px"></i>Bid 1番乗り 10%</button>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn-reset" onclick="resetFilters()"><i class="ti ti-rotate" aria-hidden="true" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Đặt lại</button>
+        <button class="btn-search" style="height:32px;padding:0 16px;font-size:12px" onclick="doSearch()">
+          <i class="ti ti-search" aria-hidden="true" style="font-size:13px"></i> Áp dụng & tìm
+        </button>
+        <span class="status-txt" id="status-bar"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="notice-area"></div>
+  <div id="results-area">
+    <div class="empty">
+      <i class="ti ti-device-desktop-search empty-icon" aria-hidden="true"></i>
+      <p>Nhập từ khóa và nhấn tìm kiếm</p>
+      <small>Dữ liệu lấy trực tiếp từ Yahoo Auctions Japan</small>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentItems=[];
+let filtersOpen=false;
+
+function toggleFilters(){
+  filtersOpen=!filtersOpen;
+  document.getElementById('filter-body').style.display=filtersOpen?'block':'none';
+  document.getElementById('chevron').classList.toggle('open',filtersOpen);
+}
+
+function chipSetup(id,multi){
+  document.getElementById(id).querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      if(multi){c.classList.toggle('on');}
+      else{document.getElementById(id).querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');}
+      updateActiveCount();
+    });
+  });
+}
+chipSetup('type-chips',false);
+chipSetup('opt-chips',true);
+
+function updateActiveCount(){
+  const els=[
+    document.getElementById('min_price').value,
+    document.getElementById('max_price').value,
+    document.querySelector('#type-chips .chip.on')?.dataset.val!=='all',
+    ...[...document.querySelectorAll('#opt-chips .chip.on')].map(c=>c.dataset.val)
+  ];
+  const count=els.filter(Boolean).length;
+  const el=document.getElementById('active-count');
+  if(count>0){el.style.display='';el.textContent=count+' đang bật';}
+  else el.style.display='none';
+}
+['min_price','max_price'].forEach(id=>document.getElementById(id).addEventListener('input',updateActiveCount));
+
+const PROXIES=[
+  u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u=>`https://thingproxy.freeboard.io/fetch/${u}`
+];
+
+function buildURL(){
+  const kw=document.getElementById('keyword').value.trim()||'kindle';
+  const cat=document.getElementById('category').value;
+  const dest=document.getElementById('dest_pref').value;
+  const n=document.getElementById('per_page').value;
+  const sv=document.getElementById('sort_order').value;
+  const minP=document.getElementById('min_price').value;
+  const maxP=document.getElementById('max_price').value;
+  const atype=document.querySelector('#type-chips .chip.on')?.dataset.val||'all';
+  const opts=[...document.querySelectorAll('#opt-chips .chip.on')].map(c=>c.dataset.val);
+  const sm={new:'s1=new&o1=d',end:'s1=end&o1=a',price_asc:'s1=cbids&o1=a',price_desc:'s1=cbids&o1=d',bids:'s1=bids&o1=d'};
+  let url=`https://auctions.yahoo.co.jp/search/search?p=${encodeURIComponent(kw)}&va=${encodeURIComponent(kw)}&${sm[sv]||sm.new}&n=${n}&mode=2`;
+  if(cat)url+=`&auccat=${cat}`;
+  if(dest)url+=`&is_postage_mode=1&dest_pref_code=${dest}`;
+  if(minP)url+=`&min=${minP}`;
+  if(maxP)url+=`&max=${maxP}`;
+  if(atype==='auction')url+=`&fixed=0`;
+  if(atype==='buynow')url+=`&fixed=1`;
+  if(opts.includes('new_item'))url+=`&new=1`;
+  if(opts.includes('no_reserve'))url+=`&noreserve=1`;
+  if(opts.includes('jp10'))url+=`&aucmaxprice=&is_postage_mode=1`;
+  return url;
+}
+
+async function fetchProxy(url,i){
+  const r=await fetch(PROXIES[i](url),{headers:{Accept:'application/json,text/html'}});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const ct=r.headers.get('content-type')||'';
+  if(ct.includes('json')){const j=await r.json();return j.contents||j.body||'';}
+  return r.text();
+}
+
+function parseItems(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const items=[];
+  const sels=['li[class*="Product"]','li.Product','.Product','li[data-auction-id]','li.b10118D0'];
+  let nodes=[];
+  for(const s of sels){nodes=doc.querySelectorAll(s);if(nodes.length)break;}
+  if(!nodes.length){nodes=[...doc.querySelectorAll('li')].filter(li=>li.textContent.includes('円')&&li.querySelector('img'));}
+  nodes.forEach(n=>{
+    try{
+      const linkEl=n.querySelector('a[href*="page.auctions"],a[href*="auctions.yahoo"]');
+      const link=linkEl?.href||'';
+      const titleEl=n.querySelector('[class*="title"],[class*="Title"],h3,.b10118D2');
+      let title=titleEl?.textContent?.trim()||'';
+      if(!title){const lines=(n.innerText||n.textContent).split('\n').map(s=>s.trim()).filter(s=>s.length>8&&!s.match(/^[\d,¥]+円?$/));title=lines[0]||'';}
+      if(!title)return;
+      const imgEl=n.querySelector('img');
+      const img=imgEl?.src||imgEl?.dataset?.src||imgEl?.getAttribute('data-lazy')||'';
+      const pts=[];
+      n.querySelectorAll('[class*="price"],[class*="Price"]').forEach(el=>{const t=el.textContent.trim();if(t.match(/[\d,]+円/))pts.push(t);});
+      if(!pts.length){[...n.textContent.matchAll(/([\d,]+)円/g)].forEach(m=>pts.push(m[0]));}
+      const pp=s=>{if(!s)return null;const m=s.replace(/,/g,'').match(/(\d+)/);return m?parseInt(m[1]):null;};
+      const cp=pp(pts[0]);
+      if(!cp)return;
+      const bn=pts.length>1?pp(pts[1]):null;
+      const isFree=n.textContent.includes('送料無料');
+      const isAuction=!!n.querySelector('[class*="bid"],[class*="Bid"]')||n.textContent.includes('入札');
+      const timeEl=n.querySelector('[class*="time"],[class*="Time"],time');
+      const timeLeft=timeEl?.textContent?.trim()||'';
+      items.push({title,link,img,currentPrice:cp,buyNowPrice:bn,isFree,isAuction,timeLeft});
+    }catch(e){}
+  });
+  return items;
+}
+
+function fmtPrice(n){return n?'¥'+n.toLocaleString():'—';}
+
+function renderResults(items){
+  const area=document.getElementById('results-area');
+  if(!items.length){
+    area.innerHTML=`<div class="empty"><i class="ti ti-mood-empty empty-icon" aria-hidden="true"></i><p>Không tìm thấy sản phẩm nào</p><small>Thử thay đổi từ khóa hoặc bộ lọc</small></div>`;
+    return;
+  }
+  const minP=parseInt(document.getElementById('min_price').value)||0;
+  const maxP=parseInt(document.getElementById('max_price').value)||Infinity;
+  const opts=[...document.querySelectorAll('#opt-chips .chip.on')].map(c=>c.dataset.val);
+  let filtered=items.filter(it=>{
+    if(it.currentPrice<minP||it.currentPrice>maxP)return false;
+    if(opts.includes('free_ship')&&!it.isFree)return false;
+    return true;
+  });
+  area.innerHTML=`
+    <div class="results-meta">
+      <div class="results-count">Hiển thị <strong>${filtered.length}</strong> / ${items.length} sản phẩm</div>
+      <select class="sort-select" onchange="clientSort(this.value)">
+        <option value="default">Mặc định</option>
+        <option value="price_asc">Giá tăng dần</option>
+        <option value="price_desc">Giá giảm dần</option>
+        <option value="free">Ship miễn phí trước</option>
+      </select>
+    </div>
+    <div class="items-list" id="items-list"></div>
+  `;
+  renderList(filtered);
+}
+
+function renderList(items){
+  const list=document.getElementById('items-list');
+  if(!list)return;
+  list.innerHTML=items.map(it=>`
+    <a class="item-card" href="${it.link||'#'}" target="_blank" rel="noopener">
+      <div class="item-thumb">
+        ${it.img?`<img src="${it.img}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'ti ti-photo\\' aria-hidden=\\'true\\'></i>'">`:`<i class="ti ti-photo" aria-hidden="true"></i>`}
+      </div>
+      <div class="item-body">
+        <div class="item-top">
+          <div class="item-title">${it.title}</div>
+          <div class="item-prices">
+            <div class="price-main">${fmtPrice(it.currentPrice)}</div>
+            ${it.buyNowPrice?`<div class="price-buynow">即決 ${fmtPrice(it.buyNowPrice)}</div>`:''}
+          </div>
+        </div>
+        <div class="item-bottom">
+          ${it.isFree?`<span class="tag tag-green"><i class="ti ti-truck" aria-hidden="true" style="font-size:11px;vertical-align:-1px;margin-right:2px"></i>送料無料</span>`:''}
+          ${it.isAuction?`<span class="tag tag-blue">Đấu giá</span>`:`<span class="tag tag-amber">即決</span>`}
+          ${it.timeLeft?`<span class="time-txt"><i class="ti ti-clock" aria-hidden="true" style="font-size:11px"></i>${it.timeLeft}</span>`:''}
+        </div>
+      </div>
+    </a>
+  `).join('');
+}
+
+function clientSort(v){
+  let s=[...currentItems];
+  if(v==='price_asc')s.sort((a,b)=>a.currentPrice-b.currentPrice);
+  else if(v==='price_desc')s.sort((a,b)=>b.currentPrice-a.currentPrice);
+  else if(v==='free')s.sort((a,b)=>b.isFree-a.isFree);
+  renderList(s);
+}
+
+async function doSearch(){
+  const btn=document.getElementById('search-btn');
+  const status=document.getElementById('status-bar');
+  const notices=document.getElementById('notice-area');
+  btn.disabled=true;
+  notices.innerHTML='';
+  status.textContent='Đang tìm kiếm...';
+  document.getElementById('results-area').innerHTML=`<div class="loading"><div class="spinner"></div><p>Đang tải dữ liệu từ Yahoo Auctions...</p><small style="margin-top:4px;display:block">Có thể mất vài giây do proxy</small></div>`;
+  const targetUrl=buildURL();
+  let html='';let ok=false;
+  for(let i=0;i<PROXIES.length;i++){
+    try{
+      status.textContent=`Đang thử proxy ${i+1}/${PROXIES.length}...`;
+      html=await fetchProxy(targetUrl,i);
+      if(html&&html.length>500){ok=true;break;}
+    }catch(e){}
+  }
+  btn.disabled=false;
+  if(!ok||!html){
+    notices.innerHTML=`<div class="err"><i class="ti ti-alert-circle" aria-hidden="true" style="font-size:15px;margin-top:1px"></i><span>Không thể kết nối qua proxy. Yahoo Auctions có thể đang chặn yêu cầu. <a class="open-link" href="${targetUrl}" target="_blank" rel="noopener">Mở trực tiếp tại Yahoo Auctions ↗</a></span></div>`;
+    document.getElementById('results-area').innerHTML=`<div class="empty"><i class="ti ti-wifi-off empty-icon" aria-hidden="true"></i><p>Không thể tải dữ liệu</p><small>Thử lại sau hoặc mở link trực tiếp</small></div>`;
+    status.textContent='';return;
+  }
+  notices.innerHTML=`<div class="notice"><i class="ti ti-info-circle" aria-hidden="true" style="font-size:15px"></i><span>Dữ liệu được tải qua CORS proxy công khai. Nếu kết quả trống, thử nhấn tìm kiếm lại. <a class="open-link" href="${targetUrl}" target="_blank" rel="noopener">Xem trực tiếp ↗</a></span></div>`;
+  currentItems=parseItems(html);
+  status.textContent=`Tìm thấy ${currentItems.length} sản phẩm`;
+  if(!currentItems.length){
+    notices.innerHTML+=`<div class="err"><i class="ti ti-alert-circle" aria-hidden="true" style="font-size:15px;margin-top:1px"></i><span>Đã nhận dữ liệu nhưng không parse được sản phẩm. Yahoo Auctions có thể đã thay đổi cấu trúc HTML. <a class="open-link" href="${targetUrl}" target="_blank" rel="noopener">Xem trực tiếp ↗</a></span></div>`;
+    document.getElementById('results-area').innerHTML=`<div class="empty"><i class="ti ti-alert-circle empty-icon" aria-hidden="true"></i><p>Không parse được dữ liệu</p><small>Cấu trúc trang có thể đã thay đổi</small></div>`;
+    return;
+  }
+  renderResults(currentItems);
+}
+
+function resetFilters(){
+  document.getElementById('keyword').value='kindle';
+  document.getElementById('min_price').value='';
+  document.getElementById('max_price').value='';
+  document.getElementById('sort_order').value='new';
+  document.getElementById('per_page').value='50';
+  document.getElementById('category').value='2084288672';
+  document.getElementById('dest_pref').value='12';
+  document.querySelectorAll('#type-chips .chip').forEach((c,i)=>c.classList.toggle('on',i===0));
+  document.querySelectorAll('#opt-chips .chip').forEach(c=>c.classList.toggle('on',c.dataset.val==='free_ship'));
+  updateActiveCount();
+  document.getElementById('status-bar').textContent='';
+  document.getElementById('notice-area').innerHTML='';
+}
+</script>
